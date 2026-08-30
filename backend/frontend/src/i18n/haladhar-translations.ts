@@ -28,7 +28,7 @@ export type HaladharTranslationKey =
   | 'haladhar.labour.postRequirement' | 'haladhar.labour.requirementPosted'
   | 'haladhar.labour.call' | 'haladhar.labour.whatsapp'
   // Navigation (New 4-tab design)
-  | 'haladhar.nav.home' | 'haladhar.nav.myFarm' | 'haladhar.nav.profile' | 'haladhar.nav.services' | 'haladhar.nav.more'
+  | 'haladhar.nav.home' | 'haladhar.nav.myFarm' | 'haladhar.nav.services' | 'haladhar.nav.more'
   // Home Page
   | 'haladhar.home.location' | 'haladhar.home.askHaladhar' | 'haladhar.home.askPlaceholder'
   // Suggestions
@@ -112,9 +112,7 @@ export type HaladharTranslationKey =
   | 'haladhar.home.noContext' | 'haladhar.home.alertTitle'
   | 'haladhar.home.weatherLabel' | 'haladhar.home.waterLabel'
   | 'haladhar.home.cropLabel' | 'haladhar.home.marketLabel'
-  | 'haladhar.home.moreInfo'
-  // Voice ask errors
-  | 'ask.micPermissionDenied' | 'ask.voiceError';
+  | 'haladhar.home.moreInfo';
 
 // ---------------------------------------------------------------------------
 // Marathi (Primary)
@@ -358,9 +356,6 @@ export const mr: Record<HaladharTranslationKey, string> = {
   'haladhar.home.cropLabel':     'पीक',
   'haladhar.home.marketLabel':   'बाजार',
   'haladhar.home.moreInfo':      'अधिक माहिती',
-  // Ask errors
-  'ask.micPermissionDenied': 'मायक्रोफोन परवानगी नाकारली',
-  'ask.voiceError': 'आवाज प्रक्रियेत त्रुटी झाली',
 };
 
 // ---------------------------------------------------------------------------
@@ -411,7 +406,6 @@ export const hi: Record<HaladharTranslationKey, string> = {
   // Navigation
   'haladhar.nav.home': 'होम',
   'haladhar.nav.myFarm': 'मेरी खेती',
-  'haladhar.nav.profile': 'मेरी जानकारी',
   'haladhar.nav.services': 'सेवाएं',
   'haladhar.nav.more': 'अधिक',
 
@@ -605,9 +599,6 @@ export const hi: Record<HaladharTranslationKey, string> = {
   'haladhar.home.cropLabel':     'फसल',
   'haladhar.home.marketLabel':   'मंडी',
   'haladhar.home.moreInfo':      'अधिक जानकारी',
-  // Ask errors
-  'ask.micPermissionDenied': 'माइक्रोफ़ोन अनुमति अस्वीकृत',
-  'ask.voiceError': 'आवाज़ प्रसंस्करण में त्रुटि हुई',
 };
 
 // ---------------------------------------------------------------------------
@@ -852,9 +843,6 @@ export const en: Record<HaladharTranslationKey, string> = {
   'haladhar.home.cropLabel':     'Crop',
   'haladhar.home.marketLabel':   'Market',
   'haladhar.home.moreInfo':      'More info',
-  // Ask errors
-  'ask.micPermissionDenied': 'Microphone permission denied',
-  'ask.voiceError': 'Voice processing error occurred',
 };
 
 // Export combined translations by language

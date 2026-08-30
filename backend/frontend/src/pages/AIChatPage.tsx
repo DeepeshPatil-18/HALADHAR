@@ -85,7 +85,7 @@ export function AIChatPage() {
   };
 
   /* ── Auth (for farmer ID in advisory saves) ────────────────── */
-  const { user, guestUserId } = useAuth();
+  const { user, isGuest, guestUserId } = useAuth();
   const farmerId = user?.id ?? guestUserId ?? 'anonymous';
 
   /* ── Blackout context ───────────────────────────────────────── */
@@ -174,10 +174,10 @@ export function AIChatPage() {
       if (error) throw error;
 
       // Snapshot — non-critical
-      void supabase.from('advisory_snapshots').insert({
+      supabase.from('advisory_snapshots').insert({
         advisory_id: advisoryId, farmer_id: farmerId,
         content, version: 1, checksum, created_at: now,
-      });
+      }).then(() => {}).catch(() => {});
 
       return 'VERIFIED';
     } catch (err) {

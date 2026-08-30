@@ -15,7 +15,7 @@
 
 import { supabase } from '../lib/supabaseClient';
 import {
-  idbPut, idbGetAll, idbGet, setMeta, getMeta,
+  idbPut, idbGetAll, idbGet, idbDelete, setMeta, getMeta,
 } from '../lib/indexedDb';
 import { checksumAsync, validateIntegrity } from '../lib/integrity';
 import type {

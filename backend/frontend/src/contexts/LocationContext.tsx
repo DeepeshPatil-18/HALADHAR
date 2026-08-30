@@ -5,8 +5,7 @@
  * Wraps <App> so every route gets the same location instance.
  */
 
-import { createContext, useContext } from 'react';
-import type { ReactNode } from 'react';
+import { createContext, useContext, ReactNode } from 'react';
 import { useUserLocation } from '../hooks/useUserLocation';
 import type { UserLocation, LocationStatus } from '../hooks/useUserLocation';
 
