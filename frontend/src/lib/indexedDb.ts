@@ -122,7 +122,7 @@ export async function saveAdvisoryLocally(advisory: {
   checksum: string;
   timestamp: string;
 }): Promise<void> {
-  await idbPut('advisories', { id: advisory.id, ...advisory });
+  await idbPut('advisories', advisory);
 
   // Trim to last 5
   const all = await idbGetAll<{ id: string; timestamp: string }>('advisories');

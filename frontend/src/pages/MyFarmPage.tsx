@@ -51,20 +51,20 @@ export function MyFarmPage() {
             }}
           >
             <Edit size={16} />
-            {t('profile.edit')}
+            {ht('haladhar.profile.edit')}
           </button>
         </div>
 
         {/* Basic Details Section */}
         <div className="haladhar-card" style={{ marginBottom: 'var(--space-md)' }}>
           <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 700, marginBottom: 'var(--space-md)', color: 'var(--haladhar-green)' }}>
-            {t('profile.basicDetails')}
+            {ht('haladhar.profile.title')}
           </h3>
           
           <div className="haladhar-info-row">
             <span className="haladhar-info-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <User size={16} color="var(--haladhar-text-muted)" />
-              {t('profile.name')}
+              {ht('haladhar.profile.name')}
             </span>
             <span className="haladhar-info-value">{farmerName}</span>
           </div>
@@ -72,7 +72,7 @@ export function MyFarmPage() {
           <div className="haladhar-info-row">
             <span className="haladhar-info-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <Phone size={16} color="var(--haladhar-text-muted)" />
-              {t('profile.mobile')}
+              {ht('haladhar.profile.mobile')}
             </span>
             <span className="haladhar-info-value">{mobile}</span>
           </div>
@@ -80,18 +80,18 @@ export function MyFarmPage() {
           <div className="haladhar-info-row">
             <span className="haladhar-info-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <MapPin size={16} color="var(--haladhar-text-muted)" />
-              {t('profile.village')}
+              {ht('haladhar.profile.village')}
             </span>
             <span className="haladhar-info-value">{village}</span>
           </div>
 
           <div className="haladhar-info-row">
-            <span className="haladhar-info-label">{t('profile.taluka')}</span>
+            <span className="haladhar-info-label">{ht('haladhar.profile.taluka')}</span>
             <span className="haladhar-info-value">{taluka}</span>
           </div>
 
           <div className="haladhar-info-row">
-            <span className="haladhar-info-label">{t('profile.district')}</span>
+            <span className="haladhar-info-label">{ht('haladhar.profile.district')}</span>
             <span className="haladhar-info-value">{district}</span>
           </div>
         </div>
@@ -99,34 +99,34 @@ export function MyFarmPage() {
         {/* Farming Context Section (AI uses this data) */}
         <div className="haladhar-card">
           <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 700, marginBottom: 'var(--space-md)', color: 'var(--haladhar-green)' }}>
-            {t('profile.farmingContext')}
+            शेती संदर्भ
           </h3>
           
           <div className="haladhar-info-row">
             <span className="haladhar-info-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <Sprout size={16} color="var(--haladhar-text-muted)" />
-              {t('profile.primaryCrop')}
+              मुख्य पीक
             </span>
             <span className="haladhar-info-value">{primaryCrop}</span>
           </div>
 
           <div className="haladhar-info-row">
-            <span className="haladhar-info-label">{t('profile.landSize')}</span>
+            <span className="haladhar-info-label">जमिनीचा आकार</span>
             <span className="haladhar-info-value">{landSize}</span>
           </div>
 
           <div className="haladhar-info-row">
-            <span className="haladhar-info-label">{t('profile.enterpriseType')}</span>
+            <span className="haladhar-info-label">व्यवसाय प्रकार</span>
             <span className="haladhar-info-value">{enterpriseType}</span>
           </div>
 
           <div className="haladhar-info-row">
-            <span className="haladhar-info-label">{t('profile.irrigation')}</span>
+            <span className="haladhar-info-label">सिंचन</span>
             <span className="haladhar-info-value">{irrigationType}</span>
           </div>
 
           <div className="haladhar-info-row">
-            <span className="haladhar-info-label">{t('profile.soilType')}</span>
+            <span className="haladhar-info-label">माती प्रकार</span>
             <span className="haladhar-info-value">{soilType}</span>
           </div>
 
@@ -139,7 +139,7 @@ export function MyFarmPage() {
             borderRadius: 'var(--radius-sm)',
             marginBottom: 0
           }}>
-            ℹ️ {t('profile.contextNote')}
+            ℹ️ ही माहिती HALADHAR AI तुम्हाला अधिक चांगले सल्ले देण्यासाठी वापरते
           </p>
         </div>
 

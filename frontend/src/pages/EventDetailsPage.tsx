@@ -42,7 +42,10 @@ export function EventDetailsPage() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] flex flex-col">
-      <DashboardHeader />
+      {/* TODO: Add proper header component */}
+      <div className="p-4 border-b">
+        <h1 className="text-lg font-semibold">Event Details</h1>
+      </div>
 
       <main className="flex-1 content-with-nav pb-6">
         <div className="max-w-[420px] mx-auto">

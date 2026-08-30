@@ -69,8 +69,8 @@ export function HomePage() {
       setContextLoading(true);
       
       // Default to Kopergaon coordinates if location not ready
-      const latitude = loc.status === 'ready' ? loc.location.latitude : 19.8826;
-      const longitude = loc.status === 'ready' ? loc.location.longitude : 74.4764;
+      const latitude = loc.status === 'found' ? loc.location?.latitude : 19.8826;
+      const longitude = loc.status === 'found' ? loc.location?.longitude : 74.4764;
 
       try {
         const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
