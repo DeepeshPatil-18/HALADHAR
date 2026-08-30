@@ -1,21 +1,36 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
+const supabaseUrl     = import.meta.env.VITE_SUPABASE_URL     as string
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
 
-const hasValidCredentials = supabaseUrl && supabaseAnonKey && 
-  supabaseUrl !== 'your_supabase_project_url' && 
-  supabaseAnonKey !== 'your_supabase_anon_key'
+// Detect any placeholder / demo value
+const PLACEHOLDER_PATTERNS = [
+  'your_supabase_project_url',
+  'your_supabase_anon_key',
+  'placeholder',
+  'demo.supabase.co',
+  'example.supabase.co',
+]
 
-if (!hasValidCredentials) {
-  console.warn('⚠️ Supabase credentials not configured. Using demo mode.')
-  console.warn('To enable full features, set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in frontend/.env')
+function isPlaceholder(val: string) {
+  if (!val) return true
+  const lower = val.toLowerCase()
+  return PLACEHOLDER_PATTERNS.some(p => lower.includes(p))
 }
 
-// Create client with valid URL format even if credentials are placeholders
-export const supabase = createClient(
-  hasValidCredentials ? supabaseUrl : 'https://demo.supabase.co', 
-  hasValidCredentials ? supabaseAnonKey : ''
-)
+export const isSupabaseConfigured =
+  !!supabaseUrl &&
+  !!supabaseAnonKey &&
+  !isPlaceholder(supabaseUrl) &&
+  !isPlaceholder(supabaseAnonKey)
 
-export const isSupabaseConfigured = hasValidCredentials
+if (!isSupabaseConfigured) {
+  console.warn('⚠️ Supabase credentials not configured. Using local demo mode.')
+  console.warn('Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in frontend/.env to enable cloud features.')
+}
+
+// Use a no-op offline URL when not configured so no real network requests are made
+export const supabase = createClient(
+  isSupabaseConfigured ? supabaseUrl : 'https://offline.supabase.co',
+  isSupabaseConfigured ? supabaseAnonKey : 'offline'
+)

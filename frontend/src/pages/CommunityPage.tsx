@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DashboardHeader } from '../components/DashboardHeader';
+import { HaladharHeader } from '../components/HaladharHeader';
 import { mockEvents, alliedGuides, farmerCommunities } from '../data/mockCommunityData';
 import { MapPin, BookOpen, Users, Calendar, ChevronRight } from 'lucide-react';
 
@@ -30,12 +30,12 @@ export function CommunityPage() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] flex flex-col">
-      <DashboardHeader />
+      <HaladharHeader title="Community" />
 
       <main className="flex-1 content-with-nav">
         <div className="max-w-[420px] mx-auto">
           {/* Header */}
-          <div className="px-4 pt-5 pb-4">
+          <div className="px-4 py-5">
             <h1 className="text-[28px] font-bold text-gray-900 mb-1 leading-tight">
               कृषि से जुड़ें
             </h1>
@@ -45,7 +45,7 @@ export function CommunityPage() {
           </div>
 
           {/* Tabs */}
-          <div className="flex border-b border-gray-200 px-4 mb-5">
+          <div className="flex border-b border-gray-200 px-4">
             <button
               onClick={() => setActiveTab('events')}
               className={`flex-1 py-3 text-[13px] font-semibold border-b-2 transition-colors
@@ -89,7 +89,7 @@ export function CommunityPage() {
             {/* Events Feed */}
             {activeTab === 'events' && (
               <div className="mt-4">
-                <div className="px-4 mb-5">
+                <div className="px-4 mb-4">
                   <h2 className="text-[16px] font-bold text-gray-900 mb-1">
                     आगामी कार्यक्रम
                   </h2>
@@ -179,7 +179,7 @@ export function CommunityPage() {
             {/* Allied Guides */}
             {activeTab === 'guides' && (
               <div className="mt-4 px-4">
-                <div className="mb-5">
+                <div className="mb-4">
                   <h2 className="text-[16px] font-bold text-gray-900 mb-1">
                     सहायक खेती गाइड
                   </h2>
@@ -229,7 +229,7 @@ export function CommunityPage() {
             {/* Farmer Communities */}
             {activeTab === 'communities' && (
               <div className="mt-4 px-4">
-                <div className="mb-5">
+                <div className="mb-4">
                   <h2 className="text-[16px] font-bold text-gray-900 mb-1">
                     किसान समुदाय
                   </h2>

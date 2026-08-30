@@ -176,7 +176,7 @@ const en: Record<TranslationKey, string> = {
   // Home screen
   'home.title': 'KrishiMitra',
   'home.subtitle': 'Your agricultural advisor',
-  'home.greeting': 'नमस्ते, किसान!',
+  'home.greeting': 'Namaste Kissan!',
   'home.greetingSubtitle': 'Welcome to your agricultural companion',
   'home.whatsAroundMe': "What's Around Me",
   'home.whatsAroundMeDesc': 'Weather, mandi prices & local needs',

@@ -1,3 +1,4 @@
+
 # --- Node / Frontend ---
 node_modules/
 dist/
@@ -12,7 +13,6 @@ __pycache__/
 venv/
 env/
 *.egg-info/
-dist/
 build/
 .pytest_cache/
 .mypy_cache/
@@ -27,8 +27,20 @@ build/
 .DS_Store
 
 # --- IDEs ---
-.vscode/
 .idea/
 
 # --- Supabase ---
 supabase/.temp/
+
+# --- Dev-time reports, scripts & archives (not part of shipped product) ---
+docs/
+frontend/src/pages/_unused/
+backend/tests/
+logo.png
+agrievents/
+
+# --- Local env overrides (never commit real keys) ---
+.env.local
+.env.production
+frontend/.env.local
+frontend/.env.production

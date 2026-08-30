@@ -15,8 +15,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
-        globPatterns: ['**/*.{html,css,js,ico,png,svg,json}'],
-        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10 MB to accommodate large poster images
+        globPatterns: ['**/*.{html,css,js,ico,svg,json}'],
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10 MB — allow large assets
       },
       manifest: {
         name: 'KrishiMitra',

@@ -1,15 +1,17 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React, { useState, useEffect } from 'react';
-import { DashboardHeader } from '../components/DashboardHeader';
-import { CloudRain, Cloud, Sun, Wind, MapPin, Calendar, Droplets, AlertTriangle, CheckCircle, Sprout } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import {
+  CloudRain, Cloud, Sun, Wind, Droplets, AlertTriangle, CheckCircle, ChevronLeft
+} from 'lucide-react';
 import { useTranslation } from '../i18n/useTranslation';
+import { useHaladharTranslation } from '../i18n/haladhar-translations';
+import { useLocation as useUserLocation } from '../contexts/LocationContext';
+import '../styles/haladhar-design.css';
 
 interface WeatherData {
-  location: {
-    name: string;
-    latitude: number;
-    longitude: number;
-  };
+  location: { name: string; latitude: number; longitude: number };
   current: {
     temperature_c: number;
     weather_code: number;
@@ -33,330 +35,255 @@ interface WeatherData {
     weather_icon: string;
     weather_description: string;
   }>;
-  alerts: Array<{
-    type: string;
-    icon: string;
-    title: string;
-    description: string;
-  }>;
+  alerts: Array<{ type: string; icon: string; title: string; description: string }>;
   farmer_advisory: string;
   source: string;
 }
 
+// Default fallback only used when location is completely unavailable
+const DEFAULT_LOC = { name: 'India', lat: 20.59, lon: 78.96, district: '', state: '' };
+
+function WeatherIcon({ code, size = 28 }: { code: number; size?: number }) {
+  const p = { size, strokeWidth: 2 };
+  if (code === 0) return <Sun {...p} color="#ca8a04" />;
+  if (code <= 2)  return <Cloud {...p} color="#9ca3af" />;
+  if (code === 3) return <Cloud {...p} color="#6b7280" />;
+  if (code <= 48) return <Wind {...p} color="#9ca3af" />;
+  return <CloudRain {...p} color="#3b82f6" />;
+}
+
 export function WeatherPage() {
-  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { t }  = useTranslation();
+  const { ht } = useHaladharTranslation();
+  const userLoc = useUserLocation();
+
   const [loading, setLoading] = useState(true);
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [error, setError] = useState(false);
 
-  // Default location: Kopergaon, Ahmednagar, Maharashtra
-  const LOCATION = {
-    name: 'Kopergaon',
-    lat: 19.88,
-    lon: 74.48,
-    district: 'Ahmednagar',
-    state: 'maharashtra'
-  };
-
+  // Fetch when location resolves (or use default if still unavailable)
   useEffect(() => {
+    if (userLoc.status === 'detecting') return; // wait for resolution
     fetchWeather();
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userLoc.status]);
 
   const fetchWeather = async () => {
     setLoading(true);
     setError(false);
     try {
-      // Build API URL with SACHET parameters
-      const params = new URLSearchParams({
-        lat: LOCATION.lat.toString(),
-        lon: LOCATION.lon.toString(),
-        location: LOCATION.name,
-        state: LOCATION.state,
-        district: LOCATION.district
-      });
-      
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/v1/weather?${params.toString()}`
-      );
-      
-      if (response.ok) {
-        const data = await response.json();
-        setWeatherData(data);
-      } else {
-        setError(true);
-      }
-    } catch (err) {
-      console.error('Weather fetch error:', err);
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
+      const loc     = userLoc.location;
+      const lat     = loc?.latitude  && loc.latitude  !== 0 ? loc.latitude  : DEFAULT_LOC.lat;
+      const lon     = loc?.longitude && loc.longitude !== 0 ? loc.longitude : DEFAULT_LOC.lon;
+      const name    = loc?.city     || loc?.district || DEFAULT_LOC.name;
+      const state   = loc?.state?.toLowerCase() || DEFAULT_LOC.state;
+      const district= loc?.district || DEFAULT_LOC.district;
+
+      const params = new URLSearchParams({ lat: lat.toString(), lon: lon.toString(), location: name, state, district });
+      const base = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+      const res = await fetch(`${base}/v1/weather?${params}`);
+      if (res.ok) setWeatherData(await res.json());
+      else setError(true);
+    } catch { setError(true); }
+    finally { setLoading(false); }
   };
 
-  const getDayNameHindi = (dateStr: string, index: number): string => {
-    if (index === 0) return t('day.today');
-    if (index === 1) return t('day.tomorrow');
-    
-    const date = new Date(dateStr);
-    const dayNames = [
-      t('day.sunday'),
-      t('day.monday'),
-      t('day.tuesday'),
-      t('day.wednesday'),
-      t('day.thursday'),
-      t('day.friday'),
-      t('day.saturday')
+  const getDayLabel = (dateStr: string, idx: number) => {
+    if (idx === 0) return t('day.today');
+    if (idx === 1) return t('day.tomorrow');
+    const days = [
+      t('day.sunday'), t('day.monday'), t('day.tuesday'), t('day.wednesday'),
+      t('day.thursday'), t('day.friday'), t('day.saturday'),
     ];
-    return dayNames[date.getDay()];
+    return days[new Date(dateStr).getDay()];
   };
 
-  const getWeatherIcon = (code: number): React.ReactElement => {
-    const iconProps = { size: 40, strokeWidth: 2, className: "text-gray-700" };
-    
-    if (code === 0) return <Sun {...iconProps} className="text-yellow-500" />;
-    if (code <= 2) return <Cloud {...iconProps} className="text-gray-400" />;
-    if (code === 3) return <Cloud {...iconProps} className="text-gray-500" />;
-    if (code <= 48) return <Wind {...iconProps} className="text-gray-400" />;
-    if (code <= 67) return <CloudRain {...iconProps} className="text-blue-500" />;
-    if (code <= 77) return <CloudRain {...iconProps} className="text-blue-400" />;
-    if (code <= 82) return <CloudRain {...iconProps} className="text-blue-600" />;
-    if (code <= 86) return <CloudRain {...iconProps} className="text-blue-400" />;
-    return <CloudRain {...iconProps} className="text-blue-700" />;
-  };
+  // Derive spraying suitability from rain probability
+  const suitableForSpray = weatherData
+    ? (weatherData.daily_forecast[0]?.rain_probability ?? 0) < 40
+    : null;
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] flex flex-col">
-      <DashboardHeader />
+    <div className="haladhar-container">
+      <main className="haladhar-page">
 
-      <main className="flex-1 content-with-nav">
-        <div className="max-w-[420px] mx-auto px-4 py-6">
-          {/* Loading State */}
-          {loading && (
-            <div className="space-y-4">
-              <div className="bg-white rounded-xl p-6 h-56 animate-pulse">
-                <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-                <div className="h-20 bg-gray-200 rounded w-full mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-              </div>
-              <div className="bg-white rounded-xl p-4 h-32 animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-1/2 mb-3"></div>
-                <div className="flex gap-2">
-                  <div className="flex-1 h-20 bg-gray-200 rounded"></div>
-                  <div className="flex-1 h-20 bg-gray-200 rounded"></div>
-                  <div className="flex-1 h-20 bg-gray-200 rounded"></div>
-                </div>
-              </div>
-            </div>
-          )}
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
+          <button onClick={() => navigate('/')}
+            style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}>
+            <ChevronLeft size={24} color="var(--haladhar-text-primary)" />
+          </button>
+          <h1 className="haladhar-heading" style={{ margin: 0, marginLeft: 'var(--space-sm)' }}>
+            {ht('haladhar.weather.today')}
+          </h1>
+        </div>
 
-          {/* Error State */}
-          {!loading && error && (
-            <div className="bg-white rounded-xl p-8 text-center">
-              <div className="mb-4 flex justify-center">
-                <div className="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center">
-                  <CloudRain size={40} strokeWidth={2} className="text-blue-500" />
-                </div>
-              </div>
-              <h3 className="text-[18px] font-bold text-gray-900 mb-2">
-                {t('weather.unavailable')}
-              </h3>
-              <p className="text-gray-600 text-[14px] mb-4">
-                {t('help.tryLater')}
-              </p>
-              <button
-                onClick={fetchWeather}
-                className="px-6 py-3 bg-[#0b5e2c] text-white rounded-lg text-[14px] font-semibold hover:bg-[#094d24] transition-colors"
-              >
-                {t('general.retry')}
-              </button>
-            </div>
-          )}
+        {/* Loading */}
+        {loading && (
+          <div className="haladhar-loading">
+            <div className="haladhar-spinner" />
+            <p className="haladhar-caption">{t('weather.loading')}</p>
+          </div>
+        )}
 
-          {/* Weather Content */}
-          {!loading && !error && weatherData && (
-            <div className="space-y-4">
-              {/* Hero Card */}
-              <div className="bg-white rounded-xl p-6 shadow-sm">
-                <div className="flex items-center gap-2 mb-4">
-                  <MapPin size={16} strokeWidth={2} className="text-gray-400" />
-                  <div className="text-[13px] text-gray-600">
+        {/* Error */}
+        {!loading && error && (
+          <div className="haladhar-card" style={{ textAlign: 'center', padding: 'var(--space-xl)' }}>
+            <CloudRain size={48} color="var(--haladhar-text-muted)" style={{ margin: '0 auto var(--space-md)' }} />
+            <p className="haladhar-body" style={{ marginBottom: 'var(--space-md)' }}>
+              {t('weather.unavailable')}
+            </p>
+            <button className="haladhar-button haladhar-button-primary" onClick={fetchWeather}>
+              {t('general.retry')}
+            </button>
+          </div>
+        )}
+
+        {/* Content */}
+        {!loading && !error && weatherData && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+
+            {/* Current Conditions */}
+            <div className="haladhar-card">
+              {/* Location + temp row */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-md)' }}>
+                <div>
+                  <p className="haladhar-caption" style={{ marginBottom: 'var(--space-xs)' }}>
                     {weatherData.location.name}
-                  </div>
+                  </p>
+                  <p style={{ fontSize: 'var(--text-3xl)', fontWeight: 700, color: 'var(--haladhar-text-primary)', lineHeight: 1 }}>
+                    {Math.round(weatherData.current.temperature_c)}°C
+                  </p>
                 </div>
-                <h1 className="text-[28px] font-bold text-gray-900 mb-6 leading-tight">
+                <WeatherIcon code={weatherData.current.weather_code} size={48} />
+              </div>
+
+              {/* Rain answer */}
+              <div style={{
+                padding: 'var(--space-md)',
+                backgroundColor: 'var(--haladhar-bg-light)',
+                borderRadius: 'var(--radius-md)',
+              }}>
+                <p className="haladhar-caption" style={{ marginBottom: 'var(--space-xs)' }}>
                   {t('weather.rainWhenQuestion')}
-                </h1>
-
+                </p>
                 {weatherData.next_rain ? (
-                  <div className="text-center py-4">
-                    <div className="mb-4 flex justify-center">
-                      {getWeatherIcon(weatherData.daily_forecast[0]?.weather_code || 61)}
-                    </div>
-                    <div className="text-[20px] font-bold text-gray-900 mb-1">
-                      {weatherData.next_rain.time_start}
-                    </div>
-                    {weatherData.next_rain.duration_hours > 1 && (
-                      <div className="text-[14px] text-gray-600 mb-4">
-                        {weatherData.next_rain.time_end} {t('help.until')}
-                      </div>
-                    )}
-                    <div className="flex justify-center gap-8 mt-5">
-                      <div>
-                        <div className="text-[12px] text-gray-500 mb-1.5">{t('weather.approximately')}</div>
-                        <div className="flex items-center justify-center gap-1.5">
-                          <Droplets size={18} strokeWidth={2} className="text-blue-500" />
-                          <span className="text-[18px] font-bold text-blue-600">
-                            {weatherData.next_rain.total_rain_mm} mm
-                          </span>
-                        </div>
-                      </div>
-                      <div className="w-px bg-gray-200"></div>
-                      <div>
-                        <div className="text-[12px] text-gray-500 mb-1.5">{t('weather.probability')}</div>
-                        <div className="text-[18px] font-bold text-blue-600">
-                          {weatherData.next_rain.probability}%
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-4">
-                    <div className="mb-4 flex justify-center">
-                      {getWeatherIcon(weatherData.current.weather_code)}
-                    </div>
-                    <div className="text-[17px] font-semibold text-gray-900 mb-2">
-                      {t('weather.noRainExpected')}
-                    </div>
-                    <div className="text-[13px] text-gray-600">
-                      {t('weather.forecastDays')}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Weather Alerts - First Instance (remove this duplicate) */}
-              {weatherData.alerts && weatherData.alerts.length > 0 && (
-                <div className="space-y-2">
-                  {weatherData.alerts.map((alert, index) => (
-                    <div
-                      key={index}
-                      className="bg-orange-50 border-l-4 border-orange-400 rounded-r-xl p-4"
-                    >
-                      <div className="flex items-start gap-3">
-                        <AlertTriangle size={20} strokeWidth={2} className="text-orange-500 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <h3 className="text-[14px] font-bold text-orange-900 mb-1">
-                            {alert.title}
-                          </h3>
-                          <p className="text-[13px] text-orange-800 leading-relaxed">
-                            {alert.description}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* 7-Day Forecast */}
-              <div className="bg-white rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Calendar size={16} strokeWidth={2} className="text-gray-600" />
-                  <h3 className="text-[16px] font-bold text-gray-900">
-                    {t('weather.forecastDays')}
-                  </h3>
-                </div>
-                <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
-                  {weatherData.daily_forecast.map((day, index) => (
-                    <div
-                      key={day.date}
-                      className="flex-shrink-0 bg-gray-50 rounded-xl p-3 text-center min-w-[80px]"
-                    >
-                      <div className="text-[11px] font-semibold text-gray-700 mb-2">
-                        {getDayNameHindi(day.date, index)}
-                      </div>
-                      <div className="mb-2 flex justify-center">
-                        <div style={{ transform: 'scale(0.8)' }}>
-                          {getWeatherIcon(day.weather_code)}
-                        </div>
-                      </div>
-                      <div className="text-[16px] font-bold text-gray-900 mb-1">
-                        {Math.round(day.max_temp_c)}°
-                      </div>
-                      <div className="flex items-center justify-center gap-1 text-[11px] text-blue-600 font-semibold">
-                        {day.rain_mm > 0 && <Droplets size={12} strokeWidth={2} />}
-                        <span>{day.rain_mm > 0 ? `${day.rain_mm}mm` : '0mm'}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Weather Alerts - Second Instance */}
-              <div className="bg-white rounded-xl p-4 shadow-sm">
-                <div className="flex items-center gap-2 mb-3">
-                  <AlertTriangle size={16} strokeWidth={2} className="text-orange-500" />
-                  <h3 className="text-[16px] font-bold text-gray-900">
-                    {t('weather.alerts')}
-                  </h3>
-                </div>
-                {weatherData.alerts && weatherData.alerts.length > 0 ? (
-                  <div className="space-y-3">
-                    {weatherData.alerts.map((alert, index) => (
-                      <div
-                        key={index}
-                        className="bg-orange-50 border-l-4 border-orange-500 rounded-r-lg p-3"
-                      >
-                        <div className="flex items-start gap-2">
-                          <AlertTriangle size={18} strokeWidth={2} className="text-orange-500 flex-shrink-0 mt-0.5" />
-                          <div className="flex-1">
-                            <h4 className="text-[14px] font-bold text-orange-900 mb-1">
-                              {alert.title}
-                            </h4>
-                            <p className="text-[13px] text-orange-800 leading-relaxed">
-                              {alert.description}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 text-green-700 bg-green-50 rounded-lg p-3">
-                    <CheckCircle size={18} strokeWidth={2} className="text-green-600 flex-shrink-0" />
-                    <p className="text-[13px] font-medium">
-                      {t('weather.noAlerts')}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Farmer Advisory */}
-              <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Sprout size={20} strokeWidth={2} className="text-green-700" />
-                  </div>
                   <div>
-                    <h3 className="text-[14px] font-bold text-green-900 mb-1.5">
-                      {t('weather.advisory')}
-                    </h3>
-                    <p className="text-[13px] text-green-800 leading-relaxed">
-                      {weatherData.farmer_advisory}
+                    <p style={{ fontSize: 'var(--text-lg)', fontWeight: 700, color: 'var(--haladhar-blue)' }}>
+                      {weatherData.next_rain.time_start}
+                    </p>
+                    <p className="haladhar-caption">
+                      {weatherData.next_rain.total_rain_mm} mm &nbsp;·&nbsp; {weatherData.next_rain.probability}%
                     </p>
                   </div>
-                </div>
+                ) : (
+                  <p style={{ fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--haladhar-green)' }}>
+                    {t('weather.noRainExpected')}
+                  </p>
+                )}
               </div>
+            </div>
 
-              {/* Data Source */}
-              <div className="text-center py-2">
-                <p className="text-[10px] text-gray-400">
-                  {weatherData.source} • {t('weather.updateFrequency')}
+            {/* Farming Advisory */}
+            <div className="haladhar-card">
+              <p className="haladhar-caption" style={{ marginBottom: 'var(--space-sm)' }}>
+                {ht('haladhar.weather.forFarming')}
+              </p>
+
+              {/* Spray suitability */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-md)',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: suitableForSpray ? '#f0fdf4' : '#fff7ed',
+                border: `1px solid ${suitableForSpray ? '#86efac' : '#fed7aa'}`,
+                marginBottom: 'var(--space-sm)',
+              }}>
+                {suitableForSpray
+                  ? <CheckCircle size={20} color="#16a34a" style={{ flexShrink: 0 }} />
+                  : <AlertTriangle size={20} color="#ea580c" style={{ flexShrink: 0 }} />
+                }
+                <p style={{
+                  fontSize: 'var(--text-base)', fontWeight: 600,
+                  color: suitableForSpray ? '#15803d' : '#c2410c',
+                  margin: 0,
+                }}>
+                  {suitableForSpray
+                    ? ht('haladhar.weather.suitableSpray')
+                    : ht('haladhar.weather.notSuitableSpray')}
                 </p>
               </div>
+
+              {/* Farmer advisory text */}
+              {weatherData.farmer_advisory && (
+                <p className="haladhar-body" style={{ marginTop: 'var(--space-sm)' }}>
+                  {weatherData.farmer_advisory}
+                </p>
+              )}
             </div>
-          )}
-        </div>
+
+            {/* Alerts */}
+            {weatherData.alerts && weatherData.alerts.length > 0 && (
+              <div>
+                {weatherData.alerts.map((alert, i) => (
+                  <div key={i} className="haladhar-alert haladhar-alert-warning" style={{ marginBottom: 'var(--space-sm)' }}>
+                    <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
+                      <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: 2 }} />
+                      <div>
+                        <p style={{ fontWeight: 700, marginBottom: 'var(--space-xs)' }}>{alert.title}</p>
+                        <p style={{ fontSize: 'var(--text-sm)' }}>{alert.description}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* 7-Day Forecast */}
+            <div className="haladhar-card">
+              <p className="haladhar-caption" style={{ marginBottom: 'var(--space-md)' }}>
+                {t('weather.forecastDays')}
+              </p>
+              <div style={{ display: 'flex', gap: 'var(--space-sm)', overflowX: 'auto', paddingBottom: 'var(--space-xs)' }}>
+                {weatherData.daily_forecast.map((day, idx) => (
+                  <div key={day.date} style={{
+                    flexShrink: 0,
+                    minWidth: '72px',
+                    textAlign: 'center',
+                    padding: 'var(--space-sm)',
+                    backgroundColor: idx === 0 ? 'var(--haladhar-bg-light)' : 'transparent',
+                    borderRadius: 'var(--radius-md)',
+                    border: idx === 0 ? '1px solid var(--haladhar-border)' : 'none',
+                  }}>
+                    <p style={{ fontSize: 'var(--text-xs)', fontWeight: 600, marginBottom: 'var(--space-xs)', color: 'var(--haladhar-text-secondary)' }}>
+                      {getDayLabel(day.date, idx)}
+                    </p>
+                    <WeatherIcon code={day.weather_code} size={24} />
+                    <p style={{ fontSize: 'var(--text-base)', fontWeight: 700, margin: 'var(--space-xs) 0' }}>
+                      {Math.round(day.max_temp_c)}°
+                    </p>
+                    {day.rain_mm > 0 && (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+                        <Droplets size={12} color="#3b82f6" />
+                        <span style={{ fontSize: 'var(--text-xs)', color: '#3b82f6', fontWeight: 600 }}>
+                          {day.rain_mm}mm
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Source */}
+            <p className="haladhar-caption" style={{ textAlign: 'center' }}>
+              {weatherData.source} · {t('weather.updateFrequency')}
+            </p>
+          </div>
+        )}
       </main>
     </div>
   );

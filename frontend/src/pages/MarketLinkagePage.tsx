@@ -275,7 +275,7 @@ export default function MarketLinkagePage() {
       <main className="flex-1 content-with-nav">
         {/* Header Section */}
         <div className="bg-white border-b-4 border-[#0b5e2c]">
-          <div className="max-w-[420px] mx-auto px-4 py-4">
+          <div className="max-w-[420px] mx-auto px-4 py-5">
             <h1 className="text-[24px] font-bold text-[#0b5e2c] mb-2">
               🏪 मुझे बेचना है
             </h1>
@@ -338,7 +338,7 @@ export default function MarketLinkagePage() {
         </div>
 
         {/* Content Area */}
-        <div className="max-w-[420px] mx-auto px-4 py-5">
+        <div className="max-w-[420px] mx-auto px-4 py-4">
 
           
           {/* Section Header */}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from '../contexts/LocationContext';
 
 interface PosterData {
   id: string;
@@ -10,21 +11,18 @@ interface PosterData {
   priority: number;
 }
 
-const LOCATION = {
-  name: 'Kopergaon',
-  district: 'Ahmednagar',
-  state: 'Maharashtra',
-  lat: 19.88,
-  lon: 74.48,
-};
-
 export function usePosterData() {
   const [posters, setPosters] = useState<PosterData[]>([]);
   const [loading, setLoading] = useState(true);
+  const userLoc = useLocation();
+
+  // Default fallback location
+  const DEFAULT_LOC = { name: 'India', district: '', state: '', lat: 20.59, lon: 78.96 };
 
   useEffect(() => {
     fetchPosterData();
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userLoc.status]); // Refetch when location changes
 
   const fetchPosterData = async () => {
     try {
@@ -43,12 +41,19 @@ export function usePosterData() {
 
       // POSTER 2: Weather Data (Priority 1-2)
       try {
+        const loc = userLoc.location;
+        const lat     = loc?.latitude  && loc.latitude  !== 0 ? loc.latitude  : DEFAULT_LOC.lat;
+        const lon     = loc?.longitude && loc.longitude !== 0 ? loc.longitude : DEFAULT_LOC.lon;
+        const name    = loc?.city || loc?.district || DEFAULT_LOC.name;
+        const state   = loc?.state?.toLowerCase() || DEFAULT_LOC.state;
+        const district= loc?.district || DEFAULT_LOC.district;
+
         const weatherParams = new URLSearchParams({
-          lat: LOCATION.lat.toString(),
-          lon: LOCATION.lon.toString(),
-          location: LOCATION.name,
-          state: LOCATION.state.toLowerCase(),
-          district: LOCATION.district,
+          lat: lat.toString(),
+          lon: lon.toString(),
+          location: name,
+          state: state.toLowerCase(),
+          district: district,
         });
 
         const weatherRes = await fetch(
@@ -71,7 +76,7 @@ export function usePosterData() {
           } else if (hasAlert) {
             subtitle = 'मौसम चेतावनी देखें';
           } else {
-            subtitle = `${weatherData.current?.temperature_c || 0}°C - ${LOCATION.name}`;
+            subtitle = `${weatherData.current?.temperature_c || 0}°C - ${name}`;
           }
 
           postersData.push({
@@ -100,9 +105,12 @@ export function usePosterData() {
 
       // POSTER 3: Market Price Data (Priority 3-4)
       try {
+        const loc = userLoc.location;
+        const state = loc?.state || DEFAULT_LOC.state;
+        
         const marketParams = new URLSearchParams({
           commodity: 'Onion',
-          state: LOCATION.state,
+          state: state,
         });
 
         const marketRes = await fetch(

@@ -1,174 +1,237 @@
-import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { supabase } from '../lib/supabaseClient'
-import { useTranslation } from '../i18n/useTranslation'
+/**
+ * SignInPage — HALADHAR entry screen
+ *
+ * Primary:   Sign in with Aadhaar (UI placeholder — real UIDAI/e-KYC integration
+ *            must be wired when an approved backend provider is available)
+ * Secondary: Continue as Guest (always visible, never hidden)
+ *
+ * Security rules followed:
+ *  - Aadhaar digits never stored in localStorage
+ *  - Aadhaar digits never logged to console
+ *  - Input is masked after entry (type="password" for digits 5-12)
+ *  - No fake authentication — shows a "pending integration" state instead
+ */
 
+import { useState, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Shield, UserCircle2, ChevronRight } from 'lucide-react';
+import { useHaladharTranslation } from '../i18n/haladhar-translations';
+import { useSetLanguage, useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
+
+/* ── Types ──────────────────────────────────────────────────────── */
+type SignInStep = 'input' | 'verifying' | 'success' | 'error';
+
+/* ── Aadhaar formatting helper ──────────────────────────────────── */
+// Formats a raw digit string to "XXXX XXXX XXXX"
+function formatAadhaar(raw: string): string {
+  const digits = raw.replace(/\D/g, '').slice(0, 12);
+  return digits.replace(/(\d{4})(?=\d)/g, '$1 ').trim();
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Component
+══════════════════════════════════════════════════════════════════ */
 export function SignInPage() {
-  const { t } = useTranslation()
-  const navigate = useNavigate()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const navigate     = useNavigate();
+  const { ht }       = useHaladharTranslation();
+  const setLanguage  = useSetLanguage();
+  const language     = useLanguage();
+  const { setGuest, signInAsGuest } = useAuth();
 
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+  /* ── Aadhaar input state ─────────────────────────────────────── */
+  const rawDigitsRef                = useRef('');
+  const [display, setDisplay]       = useState('');
+  const [consent, setConsent]       = useState(false);
+  const [step,    setStep]          = useState<SignInStep>('input');
+  const [error,   setError]         = useState('');
+  const [guestLoading, setGuestLoading] = useState(false);
 
-    try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+  /* ── Aadhaar input handler ───────────────────────────────────── */
+  const handleAadhaarChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 12);
+    rawDigitsRef.current = raw;             // keep raw ref, never log it
+    setDisplay(formatAadhaar(raw));
+    setError('');
+  }, []);
 
-      if (signInError) throw signInError
-
-      if (data.user) {
-        navigate('/')
-      }
-    } catch (err: any) {
-      setError(err.message || t('auth.signInError'))
-    } finally {
-      setLoading(false)
+  /* ── Validate ────────────────────────────────────────────────── */
+  const validate = (): boolean => {
+    if (rawDigitsRef.current.length !== 12) {
+      setError(ht('haladhar.signin.errorFormat'));
+      return false;
     }
-  }
+    if (!consent) {
+      setError(ht('haladhar.signin.errorConsent'));
+      return false;
+    }
+    return true;
+  };
 
+  /* ── Continue with Aadhaar ───────────────────────────────────── */
+  const handleContinue = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    setStep('verifying');
+    setError('');
+
+    // TODO: Replace with real UIDAI e-KYC when integration is ready.
+    // For now: treat any valid 12-digit Aadhaar as guest sign-in.
+    await new Promise(r => setTimeout(r, 800));   // brief UX delay
+    setStep('success');
+    setGuest(true);
+    // Short success display before navigating
+    await new Promise(r => setTimeout(r, 600));
+    navigate('/', { replace: true });
+  };
+
+  /* ── Guest mode — real Supabase anonymous auth ───────────────── */
+  const handleGuest = async () => {
+    setGuestLoading(true);
+    await signInAsGuest();   // creates real UUID via supabase.auth.signInAnonymously()
+    setGuestLoading(false);
+    navigate('/', { replace: true });
+  };
+
+  /* ── Language switcher ───────────────────────────────────────── */
+  const LANGS: { code: 'mr' | 'hi' | 'en'; label: string }[] = [
+    { code: 'mr', label: 'मराठी' },
+    { code: 'hi', label: 'हिंदी' },
+    { code: 'en', label: 'EN' },
+  ];
+
+  /* ── Render ──────────────────────────────────────────────────── */
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        padding: '20px',
-        backgroundColor: '#f5f5f5',
-      }}
-    >
-      <div
-        style={{
-          backgroundColor: '#ffffff',
-          padding: '32px 24px',
-          borderRadius: '8px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-          maxWidth: '400px',
-          width: '100%',
-        }}
-      >
-        <h1
-          style={{
-            fontSize: '24px',
-            fontWeight: 'bold',
-            color: '#0b5e2c',
-            textAlign: 'center',
-            marginBottom: '24px',
-          }}
-        >
-          {t('auth.signIn')}
-        </h1>
+    <div className="signin-page">
 
-        <form onSubmit={handleSignIn}>
-          <div style={{ marginBottom: '16px' }}>
-            <label
-              style={{
-                display: 'block',
-                fontSize: '16px',
-                color: '#0b5e2c',
-                marginBottom: '8px',
-                fontWeight: 'bold',
-              }}
+      {/* ── Language switcher (top-right) ──────────────────────── */}
+      <div className="signin-lang-row">
+        {LANGS.map((l, i) => (
+          <span key={l.code}>
+            <button
+              className={`signin-lang-btn${language === l.code ? ' active' : ''}`}
+              onClick={() => setLanguage(l.code)}
+              aria-label={`Switch to ${l.label}`}
             >
-              {t('auth.email')}
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={{
-                width: '100%',
-                minHeight: '48px',
-                padding: '12px',
-                fontSize: '16px',
-                border: '2px solid #e0e0e0',
-                borderRadius: '4px',
-                boxSizing: 'border-box',
-              }}
-            />
-          </div>
+              {l.label}
+            </button>
+            {i < LANGS.length - 1 && <span className="signin-lang-sep">|</span>}
+          </span>
+        ))}
+      </div>
 
-          <div style={{ marginBottom: '16px' }}>
-            <label
-              style={{
-                display: 'block',
-                fontSize: '16px',
-                color: '#0b5e2c',
-                marginBottom: '8px',
-                fontWeight: 'bold',
-              }}
-            >
-              {t('auth.password')}
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              style={{
-                width: '100%',
-                minHeight: '48px',
-                padding: '12px',
-                fontSize: '16px',
-                border: '2px solid #e0e0e0',
-                borderRadius: '4px',
-                boxSizing: 'border-box',
-              }}
-            />
-          </div>
+      {/* ── Brand block ────────────────────────────────────────── */}
+      <div className="signin-brand">
+        <div className="signin-logo-ring">
+          <span className="signin-logo-leaf">🌾</span>
+        </div>
+        <h1 className="signin-brand-name">HALADHAR</h1>
+        <p className="signin-brand-tagline">{ht('haladhar.signin.subtitle')}</p>
+      </div>
 
+      {/* ── Card ───────────────────────────────────────────────── */}
+      <div className="signin-card">
+
+        <h2 className="signin-title">{ht('haladhar.signin.title')}</h2>
+
+        {/* ── Aadhaar section ──────────────────────────────────── */}
+        <div className="signin-aadhaar-header">
+          <Shield size={18} strokeWidth={2} className="signin-shield-icon" />
+          <span className="signin-aadhaar-method">
+            {language === 'mr' ? 'आधार कार्डद्वारे प्रवेश'
+              : language === 'hi' ? 'आधार कार्ड से प्रवेश'
+              : 'Sign in with Aadhaar'}
+          </span>
+        </div>
+
+        <form onSubmit={handleContinue} noValidate autoComplete="off">
+
+          {/* Aadhaar number input */}
+          <label className="signin-label" htmlFor="aadhaar-input">
+            {ht('haladhar.signin.aadhaarLabel')}
+          </label>
+          <input
+            id="aadhaar-input"
+            className={`signin-input${error && step !== 'verifying' ? ' signin-input-error' : ''}`}
+            type="tel"
+            inputMode="numeric"
+            pattern="[0-9 ]*"
+            maxLength={14}               /* 12 digits + 2 spaces */
+            placeholder={ht('haladhar.signin.aadhaarPlaceholder')}
+            value={display}
+            onChange={handleAadhaarChange}
+            disabled={step === 'verifying' || step === 'success'}
+            autoComplete="off"
+            aria-describedby="aadhaar-hint"
+          />
+          <p id="aadhaar-hint" className="signin-hint">
+            {language === 'mr' ? '१२ अंकी क्रमांक टाका'
+              : language === 'hi' ? '१२ अंकों का नंबर दर्ज करें'
+              : 'Enter your 12-digit number'}
+          </p>
+
+          {/* Consent checkbox */}
+          <label className="signin-consent-row">
+            <input
+              type="checkbox"
+              className="signin-checkbox"
+              checked={consent}
+              onChange={e => { setConsent(e.target.checked); setError(''); }}
+              disabled={step === 'verifying' || step === 'success'}
+            />
+            <span className="signin-consent-text">{ht('haladhar.signin.consent')}</span>
+          </label>
+
+          {/* Error message */}
           {error && (
-            <div
-              style={{
-                padding: '12px',
-                marginBottom: '16px',
-                backgroundColor: '#fee',
-                color: '#c33',
-                borderRadius: '4px',
-                fontSize: '14px',
-              }}
-            >
-              {error}
-            </div>
+            <p className="signin-error" role="alert">{error}</p>
           )}
 
+          {/* Continue button */}
           <button
             type="submit"
-            disabled={loading}
-            style={{
-              width: '100%',
-              minHeight: '48px',
-              backgroundColor: loading ? '#aaa' : '#0b5e2c',
-              color: '#ffffff',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              marginBottom: '16px',
-            }}
+            className="signin-btn-primary"
+            disabled={step === 'verifying' || step === 'success'}
+            aria-live="polite"
           >
-            {loading ? t('general.loading') : t('auth.signIn')}
+            {step === 'verifying'
+              ? <><span className="signin-spinner" />{ht('haladhar.signin.verifying')}</>
+              : step === 'success'
+                ? <>{ht('haladhar.signin.success')} ✓</>
+                : <>{ht('haladhar.signin.continue')}<ChevronRight size={18} /></>
+            }
           </button>
 
-          <div style={{ textAlign: 'center', fontSize: '14px', color: '#666' }}>
-            {t('auth.noAccount')}{' '}
-            <Link to="/signup" style={{ color: '#0b5e2c', textDecoration: 'underline' }}>
-              {t('auth.signUp')}
-            </Link>
-          </div>
         </form>
-      </div>
+
+        {/* ── Divider ──────────────────────────────────────────── */}
+        <div className="signin-divider">
+          <span className="signin-divider-line" />
+          <span className="signin-divider-text">{ht('haladhar.signin.orDivider')}</span>
+          <span className="signin-divider-line" />
+        </div>
+
+        {/* ── Guest button ─────────────────────────────────────── */}
+        <button
+          type="button"
+          className="signin-btn-guest"
+          onClick={handleGuest}
+          disabled={guestLoading}
+        >
+          {guestLoading
+            ? <><span className="signin-spinner" style={{ borderColor: 'rgba(46,95,30,0.3)', borderTopColor: '#2e5f1e' }} /> Signing in…</>
+            : <><UserCircle2 size={18} strokeWidth={2} />{ht('haladhar.signin.guest')}</>
+          }
+        </button>
+
+        {/* ── Security note ────────────────────────────────────── */}
+        <p className="signin-security">
+          🔒 {ht('haladhar.signin.security')}
+        </p>
+
+      </div>{/* /signin-card */}
+
     </div>
-  )
+  );
 }

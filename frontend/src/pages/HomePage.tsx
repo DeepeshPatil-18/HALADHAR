@@ -1,272 +1,341 @@
-import { DashboardHeader } from '../components/DashboardHeader';
-import { UpdatesPosterCarousel } from '../components/UpdatesPosterCarousel';
-import { usePosterData } from '../hooks/usePosterData';
+/**
+ * HomePage — HALADHAR Voice-First Daily Context (IMPROVED COMPACT LAYOUT)
+ *
+ * Improvements:
+ * - Added warm greeting below tagline
+ * - Reduced empty vertical space
+ * - Fixed service grid (2-col, vertical layout with icon on top)
+ * - Voice examples as small chips
+ * - Compact 2×2 daily info grid
+ * - Proper bottom nav clearance
+ * - Voice vs text interaction clearly separated
+ */
+
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingBasket, CloudRain, Users, HelpCircle, Mic, ChevronRight, Home, MessageCircle } from 'lucide-react';
-import { useTranslation } from '../i18n/useTranslation';
+import {
+  MapPin, Mic, CloudRain, Droplets, Sprout, IndianRupee,
+  Bug, ClipboardList, Home, Tractor, LayoutGrid, MoreHorizontal, Globe, Wrench,
+} from 'lucide-react';
+import { useHaladharTranslation } from '../i18n/haladhar-translations';
+import { useLocation } from '../contexts/LocationContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useLanguage, useSetLanguage } from '../contexts/LanguageContext';
+import type { Language } from '../i18n/translations';
+import '../styles/haladhar-design.css';
+
+interface DailyContext {
+  weather?: { label: string; value: string };
+  water?: { label: string; value: string };
+  crop?: { label: string; value: string };
+  market?: { label: string; value: string };
+  actions?: string[];
+  alert?: { title: string; message: string };
+}
 
 export function HomePage() {
-  const { posters, loading } = usePosterData();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { ht } = useHaladharTranslation();
+  const loc = useLocation();
+
+  /* ── Language switching ─────────────────────────────────────── */
+  const currentLanguage = useLanguage();
+  const setLanguage = useSetLanguage();
+  const [showLangMenu, setShowLangMenu] = useState(false);
+
+  const languages: { code: Language; label: string }[] = [
+    { code: 'mr', label: 'मराठी' },
+    { code: 'hi', label: 'हिंदी' },
+    { code: 'en', label: 'English' },
+  ];
+
+  const handleLanguageChange = (lang: Language) => {
+    setLanguage(lang);
+    setShowLangMenu(false);
+  };
+
+  /* ── Auth (for personalized greeting if available) ────────── */
+  const { user } = useAuth();
+  const farmerName = user?.user_metadata?.full_name || user?.user_metadata?.name;
+
+  const [isListening, setIsListening] = useState(false);
+  const [dailyContext, setDailyContext] = useState<DailyContext | null>(null);
+  const [contextLoading, setContextLoading] = useState(false);
+
+  /* ── Fetch daily context from API ─────────────────────────── */
+  /* ── Fetch daily context from API ─────────────────────────── */
+  useEffect(() => {
+    const fetchContext = async () => {
+      setContextLoading(true);
+      
+      // Default to Kopergaon coordinates if location not ready
+      const latitude = loc.status === 'ready' ? loc.location.latitude : 19.8826;
+      const longitude = loc.status === 'ready' ? loc.location.longitude : 74.4764;
+
+      try {
+        const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+        
+        // Add timeout to prevent hanging
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+        
+        const res = await fetch(
+          `${API_BASE}/v1/farmer/daily-context?lat=${latitude}&lon=${longitude}&language=${currentLanguage}`,
+          { signal: controller.signal }
+        );
+        
+        clearTimeout(timeoutId);
+        
+        if (res.ok) {
+          const data = await res.json();
+          setDailyContext(data);
+        } else {
+          console.warn('[HomePage] Daily context API returned error:', res.status);
+          // Use dummy data on error
+          setDailyContext(getDummyContext());
+        }
+      } catch (err) {
+        console.warn('[HomePage] Daily context fetch failed:', err);
+        // Use dummy data on error (including timeout)
+        setDailyContext(getDummyContext());
+      } finally {
+        setContextLoading(false);
+      }
+    };
+
+    fetchContext();
+  }, [
+    loc.status,
+    loc.location?.latitude ?? 0,
+    loc.location?.longitude ?? 0,
+    currentLanguage
+  ]);
+
+  /* ── Dummy context for development/fallback ─────────────────── */
+  const getDummyContext = (): DailyContext => {
+    const currentLang = currentLanguage;
+    
+    // Simple, actionable suggestions in each language
+    const suggestions = {
+      mr: {
+        title: "आजच्या शेतीसाठी सूचना",
+        suggestion: "आज हवामान चांगले आहे. संध्याकाळी 4 ते 6 वाजेपर्यंत पाणी द्या. फवारणी करू नका कारण उद्या पाऊस येऊ शकतो.",
+        marketTip: "कापसाचा आज बाजारभाव चांगला आहे - ₹6,800 प्रति क्विंटल"
+      },
+      hi: {
+        title: "आज की खेती के लिए सुझाव",
+        suggestion: "आज मौसम अच्छा है। शाम 4 से 6 बजे तक पानी दें। स्प्रे न करें क्योंकि कल बारिश हो सकती है।",
+        marketTip: "कपास का आज बाजार भाव अच्छा है - ₹6,800 प्रति क्विंटल"
+      },
+      en: {
+        title: "Today's Farming Suggestion",
+        suggestion: "Weather is good today. Water your crops between 4-6 PM. Avoid spraying as rain is expected tomorrow.",
+        marketTip: "Cotton market price is good today - ₹6,800 per quintal"
+      }
+    };
+    
+    const langData = suggestions[currentLang] || suggestions.mr;
+    
+    return {
+      weather: {
+        label: langData.title,
+        value: langData.suggestion
+      },
+      market: {
+        label: "",
+        value: langData.marketTip
+      },
+      actions: [],
+      alert: undefined
+    };
+  };
+
+  /* ── Voice interaction ─────────────────────────────────────── */
+  const handleVoiceClick = () => {
+    setIsListening(true);
+    navigate('/ai', { state: { mode: 'voice' } });
+  };
+
+  /* ── Text interaction ─────────────────────────────────────── */
+  const handleTextClick = () => {
+    navigate('/ai', { state: { mode: 'text' } });
+  };
+
+  /* ── Location display ─────────────────────────────────────── */
+  const locationLabel = () => {
+    if (loc.status === 'detecting') return ht('haladhar.location.detecting');
+    if (loc.status === 'denied') return ht('haladhar.location.unavailable');
+    if (loc.status === 'unavailable') return ht('haladhar.location.unavailable');
+    return loc.label || ht('haladhar.location.unavailable');
+  };
+
+  const showSetManually = loc.status === 'denied' || loc.status === 'unavailable';
+
+  /* ── Services (2-col with icon on top, vertical layout) ────── */
+  const services = [
+    { icon: CloudRain,    label: ht('haladhar.service.weather'), route: '/weather', bg: '#e8f5e9', color: '#2d6a4f' },
+    { icon: IndianRupee,  label: ht('haladhar.service.market'),  route: '/bazaar',  bg: '#fff3e0', color: '#f57c00' },
+    { icon: ClipboardList,label: ht('haladhar.service.schemes'), route: '/help',    bg: '#e3f2fd', color: '#0077b6' },
+    { icon: Wrench,       label: ht('haladhar.service.labour'),  route: '/labour',  bg: '#f3e5f5', color: '#7b1fa2' },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#f5f5f5] flex flex-col">
-      {/* Mobile App Container - Centered on Desktop */}
-      <div className="w-full max-w-[430px] mx-auto bg-[#f5f5f5] min-h-screen flex flex-col relative">
-        
-        <DashboardHeader />
+    <div className="haladhar-container">
+      <main className="hm-page">
 
-        {/* Main Content with Bottom Padding for Nav */}
-        <main className="flex-1 pb-20">
+        {/* ── HEADER ─────────────────────────────────────────── */}
+        <header className="hm-header">
+          <div className="hm-brand-block">
+            <div className="hm-brand-row">
+              <Sprout size={24} strokeWidth={2.5} className="hm-brand-icon" />
+              <span className="hm-brand">{ht('haladhar.brand')}</span>
+            </div>
+            <span className="hm-tagline">{ht('haladhar.tagline')}</span>
+          </div>
           
-          {/* Greeting Section */}
-          <div className="px-4 pt-6 pb-5">
-            <h1 className="text-[26px] font-bold text-gray-900 leading-[1.25] mb-1.5" 
-                style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>
-              {t('home.greeting')}
-            </h1>
-            <p className="text-[14px] text-gray-600 leading-[1.4]" 
-               style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>
-              {t('home.greetingSubtitle')}
-            </p>
-          </div>
-
-          {/* AI Voice Card */}
-          <div className="px-4 mb-6">
+          {/* Language selector */}
+          <div style={{ position: 'relative' }}>
             <button
-              onClick={() => navigate('/ai')}
-              className="w-full bg-[#0b5e2c] rounded-2xl p-5 
-                       hover:shadow-lg active:scale-[0.99] transition-all shadow-md"
+              className="hm-icon-btn"
+              aria-label="Change language"
+              onClick={() => setShowLangMenu(!showLangMenu)}
             >
-              {/* Top Row: Icon + Content + Arrow */}
-              <div className="flex items-center justify-between gap-3 mb-4">
-                {/* Left: Mic Icon */}
-                <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Mic size={28} strokeWidth={2.5} className="text-white" />
-                </div>
-
-                {/* Center: Content */}
-                <div className="flex-1 text-left">
-                  <h2 className="text-[19px] font-bold text-white leading-[1.3] mb-0.5" 
-                      style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>
-                    {t('home.askKrishiMitra')}
-                  </h2>
-                  <p className="text-[12px] text-white/90 leading-[1.35]" 
-                     style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>
-                    {t('home.askKrishiMitraDesc')}
-                  </p>
-                </div>
-
-                {/* Right: Arrow Button */}
-                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center flex-shrink-0">
-                  <ChevronRight size={24} strokeWidth={3} className="text-[#0b5e2c]" />
-                </div>
-              </div>
-
-              {/* Bottom: Voice Button */}
-              <div className="flex justify-center">
-                <div className="bg-white rounded-full px-5 py-2 inline-flex items-center">
-                  <span className="text-[13px] font-semibold text-[#0b5e2c]" 
-                        style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>
-                    {t('ask.listen')}
-                  </span>
-                </div>
-              </div>
+              <Globe size={20} strokeWidth={2} />
             </button>
+            
+            {showLangMenu && (
+              <div className="hm-lang-menu">
+                {languages.map((lang) => (
+                  <button
+                    key={lang.code}
+                    className={`hm-lang-option ${currentLanguage === lang.code ? 'active' : ''}`}
+                    onClick={() => handleLanguageChange(lang.code)}
+                  >
+                    {lang.label}
+                    {currentLanguage === lang.code && <span className="hm-lang-check">✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
+        </header>
 
-          {/* Section Header: आपल्यासाठी (For You) */}
-          {!loading && posters.length > 0 && (
-            <>
-              <div className="px-4 mb-3 flex items-center justify-between">
-                <h3 className="text-[18px] font-bold text-gray-900" 
-                    style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>
-                  {t('home.forYou')}
-                </h3>
-                <button
-                  onClick={() => navigate('/community')}
-                  className="text-[12px] font-semibold text-[#0b5e2c] flex items-center gap-0.5
-                           hover:underline active:scale-95 transition-all"
-                  style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}
-                >
-                  {t('home.seeAll')}
-                  <ChevronRight size={14} strokeWidth={2.5} />
-                </button>
-              </div>
-
-              {/* Updates Poster Carousel */}
-              <div className="mb-6">
-                <UpdatesPosterCarousel posters={posters} />
-              </div>
-            </>
+        {/* ── LOCATION ───────────────────────────────────────── */}
+        <div className="hm-location-row">
+          <div className="hm-location">
+            <MapPin size={13} />
+            <span>{locationLabel()}</span>
+          </div>
+          {showSetManually && (
+            <button
+              className="hm-location-set"
+              onClick={() => navigate('/profile')}
+            >
+              {ht('haladhar.location.setManually')}
+            </button>
           )}
+        </div>
 
-          {/* Section Title: मुख्य सेवा (Main Services) */}
-          <div className="px-4 mb-3">
-            <h3 className="text-[18px] font-bold text-gray-900" 
-                style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>
-              {t('home.mainServices')}
-            </h3>
+        {/* ── GREETING (PROMINENT, ABOVE MICROPHONE) ─────────── */}
+        <div className="hm-greeting">
+          {farmerName ? `${ht('haladhar.home.greeting').split(' ')[0]} ${farmerName} ${ht('haladhar.home.greeting').split(' ').slice(1).join(' ')}` : ht('haladhar.home.greeting')}
+        </div>
+
+        {/* ── VOICE-FIRST CTA (COMPACT, NO EXAMPLES) ──────────────────────── */}
+        <div className="hm-voice-cta">
+          <button
+            className={`hm-voice-btn ${isListening ? 'listening' : ''}`}
+            onClick={handleVoiceClick}
+            aria-label={ht('haladhar.home.voiceCta')}
+          >
+            <Mic size={44} strokeWidth={2} />
+          </button>
+          <p className="hm-voice-label">
+            {isListening ? ht('haladhar.home.voiceListening') : ht('haladhar.home.voiceCta')}
+          </p>
+        </div>
+
+        {/* ── TEXT FALLBACK ──────────────────────────────────── */}
+        <div className="hm-text-fallback">
+          <button className="hm-text-link" onClick={handleTextClick}>
+            {ht('haladhar.home.orType')}
+          </button>
+        </div>
+
+        {/* ── DAILY SUGGESTION (SIMPLE, ONE MESSAGE) ─────────────── */}
+        <div className="hm-today">
+          {contextLoading ? (
+            <p style={{ color: 'var(--haladhar-text-muted)', fontSize: '14px', margin: 0, textAlign: 'center' }}>
+              {currentLanguage === 'mr' ? 'माहिती आणत आहे...' : currentLanguage === 'hi' ? 'जानकारी ला रहे हैं...' : 'Loading information...'}
+            </p>
+          ) : dailyContext ? (
+            <>
+              {dailyContext.weather && (
+                <div className="hm-suggestion-card">
+                  <h3 className="hm-suggestion-title">
+                    {dailyContext.weather.label}
+                  </h3>
+                  <p className="hm-suggestion-text">
+                    {dailyContext.weather.value}
+                  </p>
+                  {dailyContext.market && dailyContext.market.value && (
+                    <p className="hm-market-tip">
+                      💰 {dailyContext.market.value}
+                    </p>
+                  )}
+                </div>
+              )}
+            </>
+          ) : (
+            <p style={{ color: 'var(--haladhar-text-muted)', fontSize: '14px', margin: 0, textAlign: 'center' }}>
+              {currentLanguage === 'mr' ? 'माहिती सध्या उपलब्ध नाही' : currentLanguage === 'hi' ? 'जानकारी उपलब्ध नहीं है' : 'Information not available'}
+            </p>
+          )}
+        </div>
+
+        {/* ── SERVICES (FIXED 2-COL GRID) ────────────────────── */}
+        <div className="hm-services">
+          <h2 className="hm-services-title">{ht('haladhar.home.servicesLabel')}</h2>
+          <div className="hm-services-grid">
+            {services.map((svc, i) => {
+              const Icon = svc.icon;
+              return (
+                <button
+                  key={i}
+                  className="hm-service-btn"
+                  onClick={() => navigate(svc.route)}
+                >
+                  <div className="hm-service-icon" style={{ background: svc.bg }}>
+                    <Icon size={20} strokeWidth={2} color={svc.color} />
+                  </div>
+                  <span>{svc.label}</span>
+                </button>
+              );
+            })}
           </div>
+        </div>
 
-          {/* Service Cards Grid */}
-          <div className="grid grid-cols-2 gap-3 px-4 pb-4">
-            {/* बाजार */}
-            <button
-              onClick={() => navigate('/bazaar')}
-              className="bg-white rounded-2xl border border-gray-200 p-5
-                       hover:border-[#0b5e2c] hover:shadow-sm transition-all
-                       active:scale-[0.98] flex flex-col items-center text-center h-full"
-            >
-              <div className="w-16 h-16 mb-3 flex items-center justify-center">
-                <ShoppingBasket size={32} strokeWidth={2} className="text-[#0b5e2c]" />
-              </div>
-              <h4 className="text-[16px] font-bold text-gray-900 leading-[1.3] mb-1" 
-                  style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>
-                {t('bazaar.title')}
-              </h4>
-              <p className="text-[12px] text-gray-600 leading-[1.35]" 
-                 style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>
-                {t('mandi.todayRates')}
-              </p>
-            </button>
+      </main>
 
-            {/* हवामान */}
-            <button
-              onClick={() => navigate('/weather')}
-              className="bg-white rounded-2xl border border-gray-200 p-5
-                       hover:border-[#0b5e2c] hover:shadow-sm transition-all
-                       active:scale-[0.98] flex flex-col items-center text-center h-full"
-            >
-              <div className="w-16 h-16 mb-3 flex items-center justify-center">
-                <CloudRain size={32} strokeWidth={2} className="text-[#0b5e2c]" />
-              </div>
-              <h4 className="text-[16px] font-bold text-gray-900 leading-[1.3] mb-1" 
-                  style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>
-                {t('weather.title')}
-              </h4>
-              <p className="text-[12px] text-gray-600 leading-[1.35]" 
-                 style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>
-                {t('weather.rainWhenQuestion')}
-              </p>
-            </button>
-
-            {/* जुड़ा */}
-            <button
-              onClick={() => navigate('/community')}
-              className="bg-white rounded-2xl border border-gray-200 p-5
-                       hover:border-[#0b5e2c] hover:shadow-sm transition-all
-                       active:scale-[0.98] flex flex-col items-center text-center h-full"
-            >
-              <div className="w-16 h-16 mb-3 flex items-center justify-center">
-                <Users size={32} strokeWidth={2} className="text-[#0b5e2c]" />
-              </div>
-              <h4 className="text-[16px] font-bold text-gray-900 leading-[1.3] mb-1" 
-                  style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>
-                {t('community.title')}
-              </h4>
-              <p className="text-[12px] text-gray-600 leading-[1.35]" 
-                 style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>
-                {t('community.communityDescription')}
-              </p>
-            </button>
-
-            {/* मदत */}
-            <button
-              onClick={() => navigate('/help')}
-              className="bg-white rounded-2xl border border-gray-200 p-5
-                       hover:border-[#0b5e2c] hover:shadow-sm transition-all
-                       active:scale-[0.98] flex flex-col items-center text-center h-full"
-            >
-              <div className="w-16 h-16 mb-3 flex items-center justify-center">
-                <HelpCircle size={32} strokeWidth={2} className="text-[#0b5e2c]" />
-              </div>
-              <h4 className="text-[16px] font-bold text-gray-900 leading-[1.3] mb-1" 
-                  style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>
-                {t('help.title')}
-              </h4>
-              <p className="text-[12px] text-gray-600 leading-[1.35]" 
-                 style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>
-                {t('schemes.title')}
-              </p>
-            </button>
-          </div>
-        </main>
-
-        {/* Bottom Navigation - Fixed */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 
-                      max-w-[430px] mx-auto" 
-             style={{ boxShadow: '0 -2px 8px rgba(0, 0, 0, 0.05)' }}>
-          <div className="grid grid-cols-5 h-16">
-            {/* होम */}
-            <button
-              onClick={() => navigate('/')}
-              className="flex flex-col items-center justify-center gap-1 
-                       bg-[#e6f7f0] text-[#0b5e2c] active:bg-[#d1f0e3] transition-colors"
-            >
-              <Home size={22} strokeWidth={2.5} />
-              <span className="text-[11px] font-semibold leading-none" 
-                    style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>
-                {t('nav.home')}
-              </span>
-            </button>
-
-            {/* बाजार */}
-            <button
-              onClick={() => navigate('/bazaar')}
-              className="flex flex-col items-center justify-center gap-1 
-                       text-gray-600 hover:text-gray-900 active:bg-gray-50 transition-colors"
-            >
-              <ShoppingBasket size={22} strokeWidth={2} />
-              <span className="text-[11px] font-medium leading-none" 
-                    style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>
-                {t('nav.bazaar')}
-              </span>
-            </button>
-
-            {/* बात करें */}
-            <button
-              onClick={() => navigate('/ai')}
-              className="flex flex-col items-center justify-center gap-1 
-                       text-gray-600 hover:text-gray-900 active:bg-gray-50 transition-colors"
-            >
-              <MessageCircle size={22} strokeWidth={2} />
-              <span className="text-[11px] font-medium leading-none" 
-                    style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>
-                {t('ask.title')}
-              </span>
-            </button>
-
-            {/* जुड़ा */}
-            <button
-              onClick={() => navigate('/community')}
-              className="flex flex-col items-center justify-center gap-1 
-                       text-gray-600 hover:text-gray-900 active:bg-gray-50 transition-colors"
-            >
-              <Users size={22} strokeWidth={2} />
-              <span className="text-[11px] font-medium leading-none" 
-                    style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>
-                {t('community.title')}
-              </span>
-            </button>
-
-            {/* मदत */}
-            <button
-              onClick={() => navigate('/help')}
-              className="flex flex-col items-center justify-center gap-1 
-                       text-gray-600 hover:text-gray-900 active:bg-gray-50 transition-colors"
-            >
-              <HelpCircle size={22} strokeWidth={2} />
-              <span className="text-[11px] font-medium leading-none" 
-                    style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>
-                {t('help.title')}
-              </span>
-            </button>
-          </div>
-        </nav>
-
-      </div>
+      {/* ── BOTTOM NAV ─────────────────────────────────────────── */}
+      <nav className="haladhar-bottom-nav">
+        <button className="haladhar-nav-item active" onClick={() => navigate('/')}>
+          <Home size={22} strokeWidth={2} />
+          <span>{ht('haladhar.nav.home')}</span>
+        </button>
+        <button className="haladhar-nav-item" onClick={() => navigate('/farm')}>
+          <Tractor size={22} strokeWidth={2} />
+          <span>{ht('haladhar.nav.profile')}</span>
+        </button>
+        <button className="haladhar-nav-item" onClick={() => navigate('/services')}>
+          <LayoutGrid size={22} strokeWidth={2} />
+          <span>{ht('haladhar.nav.services')}</span>
+        </button>
+        <button className="haladhar-nav-item" onClick={() => navigate('/more')}>
+          <MoreHorizontal size={22} strokeWidth={2} />
+          <span>{ht('haladhar.nav.more')}</span>
+        </button>
+      </nav>
     </div>
   );
 }

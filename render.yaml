@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: krishimitra-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SARVAM_API_KEY
+        sync: false
+      - key: SARVAM_STT_MODEL
+        value: saaras:v3
+      - key: SARVAM_TTS_MODEL
+        value: bulbul:v3
+      - key: SARVAM_TTS_SPEAKER
+        value: shubh
+      - key: MISTRAL_API_KEY
+        sync: false
+      - key: MISTRAL_AGENT_ID
+        sync: false
+      - key: MAPPLS_ACCESS_TOKEN
+        sync: false
+      - key: ALLOWED_ORIGINS
+        # Set this to your Vercel frontend URL after deploying
+        # e.g. https://krishimitra.vercel.app,https://krishimitra-git-main.vercel.app
+        sync: false
+    healthCheckPath: /health
