@@ -119,8 +119,11 @@ export function AIChatPage() {
       id: advisoryId, operationId, farmerId, content, checksum, timestamp: now, question,
     });
 
+    // Check for force normal mode environment variable
+    const forceNormalMode = import.meta.env.VITE_FORCE_NORMAL_MODE === 'true';
+
     // ── BLACKOUT PATH — redirect to blackout_demo_records ─────────
-    if (blackoutMode) {
+    if (blackoutMode && !forceNormalMode) {
       const displayId = nextDisplayId();
 
       // Try to write to blackout_demo_records if Supabase is configured

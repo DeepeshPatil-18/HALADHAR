@@ -41,7 +41,10 @@ interface BlackoutContextValue {
 const BlackoutContext = createContext<BlackoutContextValue | undefined>(undefined);
 
 export function BlackoutProvider({ children }: { children: ReactNode }) {
-  const [blackoutMode,   setBlackoutMode]   = useState(false);
+  // Check environment variable to force normal mode
+  const forceNormalMode = import.meta.env.VITE_FORCE_NORMAL_MODE === 'true';
+  
+  const [blackoutMode,   setBlackoutMode]   = useState(forceNormalMode ? false : false); // Always start in normal mode
   const [pendingOps,     setPendingOps]     = useState<PendingOp[]>([]);
   const [recoveredCount, setRecoveredCount] = useState(0);
   const [opCounter,      setOpCounter]      = useState(1);
@@ -67,9 +70,14 @@ export function BlackoutProvider({ children }: { children: ReactNode }) {
 
   /* ── Activate blackout ───────────────────────────────────────── */
   const activateBlackout = useCallback(() => {
+    // Don't allow blackout activation if force normal mode is enabled
+    if (forceNormalMode) {
+      console.info('[Blackout] Activation blocked - force normal mode enabled');
+      return;
+    }
     setBlackoutMode(true);
     console.info('[Blackout] Activated — advisory saves redirected to recovery storage');
-  }, []);
+  }, [forceNormalMode]);
 
   /* ── Deactivate + replay pending ops ────────────────────────── */
   const deactivateBlackout = useCallback(async () => {
