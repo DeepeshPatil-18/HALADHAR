@@ -16,7 +16,7 @@ SARVAM_TTS_SPEAKER=shubh
 
 # Mistral AI (Chat Assistant) - UPDATED
 MISTRAL_API_KEY=mstrl_S9eNTQab6Q4g0PHrCSd8Fshhgo4kGAD3_0Y7ACj
-MISTRAL_AGENT_ID=ag_01a046a7fa2f71638857e9d35f90f6e8
+MISTRAL_AGENT_ID=ag_01a0e4287799724cba04f2bfcb235ce8
 
 # Mappls (Location Services)
 MAPPLS_ACCESS_TOKEN=hcpflekjwzdubcfnryyhbzmxqhhuyxjfxmwo
@@ -45,6 +45,7 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 ```bash
 SARVAM_API_KEY=sk_axazbxdv_fBgxtCwIImUfdBgpwvRdKCcR
 MISTRAL_API_KEY=mstrl_S9eNTQab6Q4g0PHrCSd8Fshhgo4kGAD3_0Y7ACj
+MISTRAL_AGENT_ID=ag_01a0e4287799724cba04f2bfcb235ce8
 ```
 
 ### Step 2: Trigger Redeploy
