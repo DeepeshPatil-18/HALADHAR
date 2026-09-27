@@ -2,7 +2,9 @@
 
 > Voice-First Agricultural Advisory Platform for Indian Farmers
 
-KrishiMitra is a mobile-first Progressive Web App (PWA) designed to empower Indian farmers running allied enterprises (poultry, fisheries, apiculture, mushroom cultivation, vermicomposting, dairy, etc.) with real-time agricultural information, AI-powered advisory, and community access.
+**KrishiMitra** is a mobile-first Progressive Web App (PWA) designed to empower Indian farmers running allied enterprises (poultry, fisheries, apiculture, mushroom cultivation, vermicomposting, dairy, etc.) with real-time agricultural information, AI-powered advisory, and community access.
+
+🌐 **Live Demo**: [krishimitra.vercel.app](https://krishimitra.vercel.app) (Coming Soon)
 
 ## 🎯 Features
 
