@@ -66,11 +66,16 @@ class MistralProvider(AIProvider):
         """
         
         if not self.api_key:
-            raise ValueError("Mistral API key not configured (MISTRAL_API_KEY)")
+            logger.warning("[MISTRAL] No API key configured, using placeholder responses")
+            return await self._placeholder_response(message, language, context)
         
         if not self.agent_id:
             logger.warning("[MISTRAL] No Agent ID configured, using regular chat completion")
-            return await self._fallback_chat_completion(message, conversation_history, language, context)
+            try:
+                return await self._fallback_chat_completion(message, conversation_history, language, context)
+            except Exception as fallback_error:
+                logger.error(f"[MISTRAL] Fallback chat completion failed: {fallback_error}")
+                return await self._placeholder_response(message, language, context)
         
         # Build messages for Mistral Agent
         # Agent's system instructions are in Mistral Studio, not here
@@ -381,4 +386,167 @@ class MistralProvider(AIProvider):
                     raise Exception("Mistral chat completion returned empty response")
             else:
                 raise Exception("Unexpected Mistral chat completion response format")
+
+    async def _placeholder_response(
+        self,
+        message: str,
+        language: str,
+        context: Optional[Dict[str, Any]]
+    ) -> str:
+        """Provide helpful agricultural responses when Mistral API is not available"""
+        
+        LANGUAGE_NAMES = {"mr": "Marathi", "hi": "Hindi", "en": "English"}
+        lang_name = LANGUAGE_NAMES.get(language, "Hindi")
+        
+        message_lower = message.lower()
+        
+        # Agricultural knowledge base responses
+        if any(word in message_lower for word in ["कीड़े", "pest", "insect", "bug"]):
+            if language == "hi":
+                return """**फसल में कीड़े का समाधान:**
+
+🔍 **तुरंत करें:**
+- नीम का तेल छिड़काव (10ml/लीटर पानी)
+- रात में कीड़ों को देखकर पहचानें
+
+💡 **प्राकृतिक उपाय:**
+- लहसुन-मिर्च का घोल
+- पीले चिपचिपे जाल लगाएं
+
+📞 **अगला कदम:**
+कृषि विशेषज्ञ से संपर्क करें या नजदीकी कृषि केंद्र जाएं।"""
+            else:
+                return """**Pest Control Solution:**
+
+🔍 **Immediate Action:**
+- Spray neem oil solution (10ml/liter water)
+- Identify pests by checking at night
+
+💡 **Natural Remedies:**
+- Garlic-chilli solution
+- Yellow sticky traps
+
+📞 **Next Step:**
+Contact agricultural expert or visit nearest Krishi Kendra."""
+        
+        elif any(word in message_lower for word in ["भाव", "price", "market", "mandi"]):
+            location = context.get("city", "आपके क्षेत्र") if context else "आपके क्षेत्र"
+            if language == "hi":
+                return f"""**बाजार भाव की जानकारी:**
+
+📍 **{location} में:**
+- वर्तमान में सटीक भाव उपलब्ध नहीं है
+
+🔍 **भाव जानने के तरीके:**
+- eNAM पोर्टल चेक करें
+- स्थानीय मंडी से संपर्क करें
+- 1581 हेल्पलाइन पर कॉल करें
+
+📈 **सुझाव:**
+बिक्री से पहले कई मंडियों के भाव तुलना करें।"""
+            else:
+                return f"""**Market Price Information:**
+
+📍 **In {location}:**
+- Exact rates not currently available
+
+🔍 **Ways to Check Prices:**
+- Check eNAM portal
+- Contact local mandi
+- Call 1581 helpline
+
+📈 **Tip:**
+Compare prices from multiple markets before selling."""
+        
+        elif any(word in message_lower for word in ["मौसम", "weather", "बारिश", "rain"]):
+            if language == "hi":
+                return """**मौसम सलाह:**
+
+☁️ **सामान्य सुझाव:**
+- बारिश से पहले फसल की जांच करें
+- जल निकासी का प्रबंध रखें
+
+🌡️ **तापमान बदलाव:**
+- दिन-रात के तापमान का ध्यान रखें
+- फसल को तेज धूप से बचाएं
+
+📱 **मौसम जानकारी:**
+IMD मौसम ऐप या स्थानीय मौसम केंद्र से संपर्क करें।"""
+            else:
+                return """**Weather Advisory:**
+
+☁️ **General Tips:**
+- Check crops before rain
+- Ensure proper drainage
+
+🌡️ **Temperature Changes:**
+- Monitor day-night temperature
+- Protect crops from harsh sun
+
+📱 **Weather Info:**
+Use IMD weather app or contact local weather center."""
+        
+        elif any(word in message_lower for word in ["योजना", "scheme", "subsidy", "सब्सिडी"]):
+            if language == "hi":
+                return """**सरकारी योजनाएं:**
+
+🏛️ **मुख्य योजनाएं:**
+- PM-KISAN (₹6000/वर्ष)
+- प्रधानमंत्री फसल बीमा योजना
+- मृदा स्वास्थ्य कार्ड
+
+📋 **आवेदन प्रक्रिया:**
+- नजदीकी CSC या कृषि कार्यालय जाएं
+- ऑनलाइन pmkisan.gov.in पर आवेदन करें
+
+📞 **हेल्पलाइन:**
+1800-115-526 (PM-KISAN)"""
+            else:
+                return """**Government Schemes:**
+
+🏛️ **Major Schemes:**
+- PM-KISAN (₹6000/year)
+- Pradhan Mantri Fasal Bima Yojana
+- Soil Health Card
+
+📋 **Application Process:**
+- Visit nearest CSC or agriculture office
+- Apply online at pmkisan.gov.in
+
+📞 **Helpline:**
+1800-115-526 (PM-KISAN)"""
+        
+        else:
+            if language == "hi":
+                return """**कृषिमित्र सहायता:**
+
+🌾 मैं आपकी खेती से जुड़े सवालों में मदद कर सकता हूं:
+
+✅ **मैं मदद कर सकता हूं:**
+- फसल की समस्याओं में
+- बाजार भाव की जानकारी
+- मौसम सलाह
+- सरकारी योजनाओं की जानकारी
+
+❌ **कृपया ध्यान दें:**
+वर्तमान में AI सेवा अस्थायी रूप से सीमित है।
+
+📞 **तत्काल सहायता:**
+कृषि हेल्पलाइन: 1800-180-1551"""
+            else:
+                return """**KrishiMitra Assistance:**
+
+🌾 I can help with your farming questions:
+
+✅ **I can help with:**
+- Crop problems
+- Market price information
+- Weather advice  
+- Government scheme details
+
+❌ **Please note:**
+AI service is temporarily limited.
+
+📞 **Immediate Help:**
+Agriculture Helpline: 1800-180-1551"""
 
