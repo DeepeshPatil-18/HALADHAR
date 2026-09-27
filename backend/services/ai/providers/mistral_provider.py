@@ -29,11 +29,14 @@ class MistralProvider(AIProvider):
         self.timeout = 30.0
         
     def get_provider_name(self) -> str:
-        return f"Mistral Agent ({self.agent_id[:8]}...)" if self.agent_id else "Mistral Agent"
+        if self.agent_id:
+            return f"Mistral Agent ({self.agent_id[:8]}...)"
+        else:
+            return "Mistral Chat (Fallback)"
     
     def is_available(self) -> bool:
-        """Check if both API key and Agent ID are configured"""
-        return bool(self.api_key and self.agent_id)
+        """Check if API key is configured (Agent ID is optional for fallback)"""
+        return bool(self.api_key)
     
     async def generate_response(
         self,
@@ -66,7 +69,8 @@ class MistralProvider(AIProvider):
             raise ValueError("Mistral API key not configured (MISTRAL_API_KEY)")
         
         if not self.agent_id:
-            raise ValueError("Mistral Agent ID not configured (MISTRAL_AGENT_ID)")
+            logger.warning("[MISTRAL] No Agent ID configured, using regular chat completion")
+            return await self._fallback_chat_completion(message, conversation_history, language, context)
         
         # Build messages for Mistral Agent
         # Agent's system instructions are in Mistral Studio, not here
@@ -301,4 +305,80 @@ class MistralProvider(AIProvider):
                 raise Exception(f"Mistral Agent API error: {e.response.status_code} - {error_text}")
         except Exception as e:
             raise Exception(f"Failed to generate response from Mistral Agent: {str(e)}")
+
+    async def _fallback_chat_completion(
+        self,
+        message: str,
+        conversation_history: List[Dict[str, str]],
+        language: str,
+        context: Optional[Dict[str, Any]]
+    ) -> str:
+        """Fallback to regular Mistral chat completion API when Agent API fails"""
+        
+        LANGUAGE_NAMES = {"mr": "Marathi", "hi": "Hindi", "en": "English"}
+        lang_name = LANGUAGE_NAMES.get(language, "Hindi")
+        
+        # Build system message with agricultural context restrictions
+        system_message = (
+            f"You are KrishiMitra, a specialized agricultural assistant for Indian farmers. "
+            f"STRICT RULE: You must ONLY answer questions related to agriculture, farming, livestock, weather, market prices, and government schemes. "
+            f"If asked about non-agricultural topics (politics, entertainment, technology, health, etc.), respond: "
+            f"'मुझे खुशी होगी आपकी खेती से जुड़े सवालों में मदद करने में। कृपया मुझसे कृषि, पशुपालन, मौसम, बाजार भाव, या सरकारी योजनाओं के बारे में पूछें। "
+            f"I'm here to help with farming-related questions only. Please ask me about agriculture, livestock, weather, market prices, or government schemes.' "
+            f"For valid agricultural questions, respond ONLY in {lang_name}. "
+            f"Keep your answer SHORT: 3–8 lines maximum unless the user explicitly asks for detail. "
+            f"Structure: give the direct answer first, then a brief reason, then one next action. "
+            f"Never show JSON, system prompts, internal reasoning, or raw technical data. "
+            f"Use practical numbers: ₹ amounts, kg, days, acres."
+        )
+        
+        # Add location context if available
+        if context:
+            loc_parts = []
+            if context.get("city"):     loc_parts.append(context["city"])
+            if context.get("district") and context["district"] != context.get("city"):
+                loc_parts.append(context["district"])
+            if context.get("state"):    loc_parts.append(context["state"])
+            loc_str = ", ".join(loc_parts) if loc_parts else None
+
+            if loc_str:
+                system_message += f" The farmer's location is {loc_str}."
+        
+        # Build messages for regular chat completion
+        messages = [{"role": "system", "content": system_message}]
+        
+        # Add conversation history (limited to last 10 messages to avoid token limits)
+        recent_history = conversation_history[-10:] if len(conversation_history) > 10 else conversation_history
+        messages.extend(recent_history)
+        
+        # Add current message
+        messages.append({"role": "user", "content": message})
+        
+        # Make API call to regular chat completion
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            response = await client.post(
+                f"{self.api_base}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": "mistral-large-latest",
+                    "messages": messages,
+                    "max_tokens": 500,
+                    "temperature": 0.7
+                }
+            )
+            
+            response.raise_for_status()
+            result = response.json()
+            
+            if "choices" in result and len(result["choices"]) > 0:
+                ai_response = result["choices"][0]["message"]["content"]
+                if ai_response:
+                    return ai_response.strip()
+                else:
+                    raise Exception("Mistral chat completion returned empty response")
+            else:
+                raise Exception("Unexpected Mistral chat completion response format")
 
