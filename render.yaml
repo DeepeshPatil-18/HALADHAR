@@ -1,31 +1,20 @@
 services:
+  # Backend API Service
   - type: web
     name: krishimitra-backend
-    runtime: python
-    rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    runtime: python3
+    buildCommand: cd backend && pip install -r requirements.txt
+    startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: SUPABASE_URL
-        sync: false
+        value: https://zlujxzsuqmzfmwermwap.supabase.co
       - key: SUPABASE_SERVICE_ROLE_KEY
-        sync: false
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpsdWp4enN1cW16Zm13ZXJtd2FwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODAyMjM0MCwiZXhwIjoyMTAzNTk4MzQwfQ.O4E78e7_WUbD--YrVyr4_dmLbg4zi0yLZClByovdZI4
       - key: SARVAM_API_KEY
-        sync: false
-      - key: SARVAM_STT_MODEL
-        value: saaras:v3
-      - key: SARVAM_TTS_MODEL
-        value: bulbul:v3
-      - key: SARVAM_TTS_SPEAKER
-        value: shubh
+        value: sk_axazbxdv_fBgxtCwIImUfdBgpwvRdKCcR
       - key: MISTRAL_API_KEY
-        sync: false
+        value: mstrl_S9eNTQab6Q4g0PHrCSd8Fshhgo4kGAD3_0Y7ACj
       - key: MISTRAL_AGENT_ID
-        sync: false
+        value: ag_01a0e4287799724cba04f2bfcb235ce8
       - key: MAPPLS_ACCESS_TOKEN
-        sync: false
-      - key: ALLOWED_ORIGINS
-        # Set this to your Vercel frontend URL after deploying
-        # e.g. https://krishimitra.vercel.app,https://krishimitra-git-main.vercel.app
-        sync: false
-    healthCheckPath: /health
+        value: hcpflekjwzdubcfnryyhbzmxqhhuyxjfxmwo
