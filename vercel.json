@@ -1,22 +1,24 @@
 {
   "version": 2,
-  "name": "haladhar-frontend",
-  "builds": [
+  "name": "haladhar",
+  "buildCommand": "cd frontend && npm ci && npm run build",
+  "devCommand": "cd frontend && npm run dev",
+  "installCommand": "cd frontend && npm ci",
+  "outputDirectory": "frontend/dist",
+  "framework": "vite",
+  "rewrites": [
     {
-      "src": "frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "frontend/dist"
-      }
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
-  "routes": [
+  "headers": [
     {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/frontend/dist/index.html"
+      "source": "/sw.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache" },
+        { "key": "Service-Worker-Allowed", "value": "/" }
+      ]
     }
   ]
 }
