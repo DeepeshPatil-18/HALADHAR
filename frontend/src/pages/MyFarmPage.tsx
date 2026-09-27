@@ -139,7 +139,7 @@ export function MyFarmPage() {
             borderRadius: 'var(--radius-sm)',
             marginBottom: 0
           }}>
-            ℹ️ ही माहिती HALADHAR AI तुम्हाला अधिक चांगले सल्ले देण्यासाठी वापरते
+            ℹ️ ही माहिती KrishiMitra AI तुम्हाला अधिक चांगले सल्ले देण्यासाठी वापरते
           </p>
         </div>
 

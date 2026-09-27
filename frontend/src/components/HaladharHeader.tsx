@@ -48,7 +48,7 @@ export function HaladharHeader({ title, onBack, showLang = true }: Props) {
         color: 'var(--haladhar-text-primary)', overflow: 'hidden',
         textOverflow: 'ellipsis', whiteSpace: 'nowrap',
       }}>
-        {title ?? 'HALADHAR'}
+        {title ?? 'KrishiMitra'}
       </span>
 
       {showLang && (

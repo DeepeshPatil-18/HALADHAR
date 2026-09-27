@@ -126,7 +126,7 @@ export function SignInPage() {
         <div className="signin-logo-ring">
           <span className="signin-logo-leaf">🌾</span>
         </div>
-        <h1 className="signin-brand-name">HALADHAR</h1>
+        <h1 className="signin-brand-name">KrishiMitra</h1>
         <p className="signin-brand-tagline">{ht('haladhar.signin.subtitle')}</p>
       </div>
 

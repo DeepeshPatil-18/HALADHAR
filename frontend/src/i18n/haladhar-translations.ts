@@ -121,7 +121,7 @@ export type HaladharTranslationKey =
 // ---------------------------------------------------------------------------
 export const mr: Record<HaladharTranslationKey, string> = {
   // Brand
-  'haladhar.brand': 'HALADHAR',
+  'haladhar.brand': 'KrishiMitra',
   'haladhar.tagline': 'शेतीच्या प्रत्येक पावलावर.',
 
   // Labour & Machinery
@@ -170,7 +170,7 @@ export const mr: Record<HaladharTranslationKey, string> = {
 
   // Home
   'haladhar.home.location': 'स्थान',
-  'haladhar.home.askHaladhar': 'HALADHAR ला विचारा...',
+  'haladhar.home.askHaladhar': 'KrishiMitra ला विचारा...',
   'haladhar.home.askPlaceholder': 'तुमचा प्रश्न विचारा...',
 
   // Suggestions
@@ -234,7 +234,7 @@ export const mr: Record<HaladharTranslationKey, string> = {
   'haladhar.market.title': 'बाजारभाव',
   'haladhar.market.perQuintal': '/ क्विंटल',
   'haladhar.market.nearbyMarkets': 'जवळच्या बाजारपेठा',
-  'haladhar.market.advice': 'HALADHAR चा सल्ला',
+  'haladhar.market.advice': 'KrishiMitra चा सल्ला',
   'haladhar.market.sellToday': '50% माल आज विकणे योग्य.',
   'haladhar.market.wait': 'विक्रीसाठी थोडे थांबा.',
   'haladhar.market.mandiBhav': 'आजचा मंडी भाव',
@@ -279,9 +279,9 @@ export const mr: Record<HaladharTranslationKey, string> = {
   // Help
   'haladhar.help.title': 'मदत',
   'haladhar.help.faq': 'वारंवार विचारले जाणारे प्रश्न',
-  'haladhar.help.askHaladhar': 'HALADHAR ला विचारा',
+  'haladhar.help.askHaladhar': 'KrishiMitra ला विचारा',
   'haladhar.help.contact': 'संपर्क',
-  'haladhar.help.about': 'HALADHAR बद्दल',
+  'haladhar.help.about': 'KrishiMitra बद्दल',
 
   // Actions
   'haladhar.action.viewInfo': 'माहिती पहा',
@@ -313,8 +313,8 @@ export const mr: Record<HaladharTranslationKey, string> = {
   'haladhar.assist.chat': '💬 लिहून विचारा',
   'haladhar.assist.voice': '🎤 बोलून विचारा',
   'haladhar.assist.chatPlaceholder': 'तुमचा प्रश्न लिहा...',
-  'haladhar.assist.voiceLabel': 'HALADHAR शी बोलून विचारा',
-  'haladhar.assist.chatLabel': 'HALADHAR सोबत चॅट करा',
+  'haladhar.assist.voiceLabel': 'KrishiMitra शी बोलून विचारा',
+  'haladhar.assist.chatLabel': 'KrishiMitra सोबत चॅट करा',
   'haladhar.assist.you': 'तुम्ही',
   // Location
   'haladhar.location.detecting': 'स्थान शोधत आहे...',
@@ -322,7 +322,7 @@ export const mr: Record<HaladharTranslationKey, string> = {
   'haladhar.location.setManually': 'स्थान सेट करा',
   'haladhar.location.allow': 'स्थान परवानगी द्या',
   // Sign In
-  'haladhar.signin.title': 'HALADHAR मध्ये प्रवेश करा',
+  'haladhar.signin.title': 'KrishiMitra मध्ये प्रवेश करा',
   'haladhar.signin.subtitle': 'शेतीच्या प्रत्येक पावलावर.',
   'haladhar.signin.aadhaarLabel': 'आधार क्रमांक',
   'haladhar.signin.aadhaarPlaceholder': 'XXXX XXXX XXXX',
@@ -368,7 +368,7 @@ export const mr: Record<HaladharTranslationKey, string> = {
 // ---------------------------------------------------------------------------
 export const hi: Record<HaladharTranslationKey, string> = {
   // Brand
-  'haladhar.brand': 'HALADHAR',
+  'haladhar.brand': 'KrishiMitra',
   'haladhar.tagline': 'खेती के हर कदम पर.',
 
   // Labour & Machinery
@@ -417,7 +417,7 @@ export const hi: Record<HaladharTranslationKey, string> = {
 
   // Home
   'haladhar.home.location': 'स्थान',
-  'haladhar.home.askHaladhar': 'HALADHAR से पूछें...',
+  'haladhar.home.askHaladhar': 'KrishiMitra से पूछें...',
   'haladhar.home.askPlaceholder': 'अपना सवाल पूछें...',
 
   // Suggestions
@@ -481,7 +481,7 @@ export const hi: Record<HaladharTranslationKey, string> = {
   'haladhar.market.title': 'मंडी भाव',
   'haladhar.market.perQuintal': '/ क्विंटल',
   'haladhar.market.nearbyMarkets': 'नजदीकी मंडियां',
-  'haladhar.market.advice': 'HALADHAR की सलाह',
+  'haladhar.market.advice': 'KrishiMitra की सलाह',
   'haladhar.market.sellToday': '50% माल आज बेचना उपयुक्त.',
   'haladhar.market.wait': 'बिक्री के लिए थोड़ा इंतजार करें.',
   'haladhar.market.mandiBhav': 'आज का मंडी भाव',
@@ -526,9 +526,9 @@ export const hi: Record<HaladharTranslationKey, string> = {
   // Help
   'haladhar.help.title': 'मदद',
   'haladhar.help.faq': 'अक्सर पूछे जाने वाले सवाल',
-  'haladhar.help.askHaladhar': 'HALADHAR से पूछें',
+  'haladhar.help.askHaladhar': 'KrishiMitra से पूछें',
   'haladhar.help.contact': 'संपर्क',
-  'haladhar.help.about': 'HALADHAR के बारे में',
+  'haladhar.help.about': 'KrishiMitra के बारे में',
 
   // Actions
   'haladhar.action.viewInfo': 'जानकारी देखें',
@@ -560,8 +560,8 @@ export const hi: Record<HaladharTranslationKey, string> = {
   'haladhar.assist.chat': '💬 लिखकर पूछें',
   'haladhar.assist.voice': '🎤 बोलकर पूछें',
   'haladhar.assist.chatPlaceholder': 'अपना सवाल लिखें...',
-  'haladhar.assist.voiceLabel': 'HALADHAR से बोलकर पूछें',
-  'haladhar.assist.chatLabel': 'HALADHAR से चैट करें',
+  'haladhar.assist.voiceLabel': 'KrishiMitra से बोलकर पूछें',
+  'haladhar.assist.chatLabel': 'KrishiMitra से चैट करें',
   'haladhar.assist.you': 'आप',
   // Location
   'haladhar.location.detecting': 'स्थान खोज रहे हैं...',
@@ -569,7 +569,7 @@ export const hi: Record<HaladharTranslationKey, string> = {
   'haladhar.location.setManually': 'स्थान सेट करें',
   'haladhar.location.allow': 'स्थान की अनुमति दें',
   // Sign In
-  'haladhar.signin.title': 'HALADHAR में प्रवेश करें',
+  'haladhar.signin.title': 'KrishiMitra में प्रवेश करें',
   'haladhar.signin.subtitle': 'खेती के हर कदम पर.',
   'haladhar.signin.aadhaarLabel': 'आधार नंबर',
   'haladhar.signin.aadhaarPlaceholder': 'XXXX XXXX XXXX',
@@ -615,7 +615,7 @@ export const hi: Record<HaladharTranslationKey, string> = {
 // ---------------------------------------------------------------------------
 export const en: Record<HaladharTranslationKey, string> = {
   // Brand
-  'haladhar.brand': 'HALADHAR',
+  'haladhar.brand': 'KrishiMitra',
   'haladhar.tagline': 'With you at every step of farming.',
 
   // Labour & Machinery
@@ -664,7 +664,7 @@ export const en: Record<HaladharTranslationKey, string> = {
 
   // Home
   'haladhar.home.location': 'Location',
-  'haladhar.home.askHaladhar': 'Ask HALADHAR...',
+  'haladhar.home.askHaladhar': 'Ask KrishiMitra...',
   'haladhar.home.askPlaceholder': 'Ask your question...',
 
   // Suggestions
@@ -728,7 +728,7 @@ export const en: Record<HaladharTranslationKey, string> = {
   'haladhar.market.title': 'Market Prices',
   'haladhar.market.perQuintal': '/ quintal',
   'haladhar.market.nearbyMarkets': 'Nearby Markets',
-  'haladhar.market.advice': "HALADHAR's Advice",
+  'haladhar.market.advice': "KrishiMitra's Advice",
   'haladhar.market.sellToday': 'Selling 50% produce today is suitable.',
   'haladhar.market.wait': 'Wait a bit for selling.',
   'haladhar.market.mandiBhav': "Today's Mandi Prices",
@@ -773,9 +773,9 @@ export const en: Record<HaladharTranslationKey, string> = {
   // Help
   'haladhar.help.title': 'Help',
   'haladhar.help.faq': 'Frequently Asked Questions',
-  'haladhar.help.askHaladhar': 'Ask HALADHAR',
+  'haladhar.help.askHaladhar': 'Ask KrishiMitra',
   'haladhar.help.contact': 'Contact',
-  'haladhar.help.about': 'About HALADHAR',
+  'haladhar.help.about': 'About KrishiMitra',
 
   // Actions
   'haladhar.action.viewInfo': 'View Info',
@@ -807,8 +807,8 @@ export const en: Record<HaladharTranslationKey, string> = {
   'haladhar.assist.chat': '💬 Type your question',
   'haladhar.assist.voice': '🎤 Speak your question',
   'haladhar.assist.chatPlaceholder': 'Write your question...',
-  'haladhar.assist.voiceLabel': 'Talk to HALADHAR',
-  'haladhar.assist.chatLabel': 'Chat with HALADHAR',
+  'haladhar.assist.voiceLabel': 'Talk to KrishiMitra',
+  'haladhar.assist.chatLabel': 'Chat with KrishiMitra',
   'haladhar.assist.you': 'You',
   // Location
   'haladhar.location.detecting': 'Detecting location...',
@@ -816,7 +816,7 @@ export const en: Record<HaladharTranslationKey, string> = {
   'haladhar.location.setManually': 'Set location',
   'haladhar.location.allow': 'Allow location',
   // Sign In
-  'haladhar.signin.title': 'Sign in to HALADHAR',
+  'haladhar.signin.title': 'Sign in to KrishiMitra',
   'haladhar.signin.subtitle': 'With you at every step of farming.',
   'haladhar.signin.aadhaarLabel': 'Aadhaar Number',
   'haladhar.signin.aadhaarPlaceholder': 'XXXX XXXX XXXX',
@@ -833,7 +833,7 @@ export const en: Record<HaladharTranslationKey, string> = {
   'haladhar.signin.guestBadge': 'Guest',
   // Home v2
   'haladhar.home.greeting':      'Namaste, farmer friends!',
-  'haladhar.home.voiceCta':      'Speak to HALADHAR',
+  'haladhar.home.voiceCta':      'Speak to KrishiMitra',
   'haladhar.home.voiceListening':'Listening...',
   'haladhar.home.voicePrompt':   'Ask your question...',
   'haladhar.home.voiceExamplesLabel': 'You can ask things like:',
