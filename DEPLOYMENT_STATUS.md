@@ -27,7 +27,7 @@
 - ✅ Auto-deployment: Enabled from GitHub
 
 ### **API Keys Configured**
-- ✅ Mistral API Key: `mstrl_S9eNTQab6Q4g0PHrCSd8Fshhgo4kGAD3_0Y7ACj`
+- ✅ Mistral API Key: `mstrl_QvYWYGXykENawCxbSE1WSrtQYlPE72WY_3BBlfa`
 - ✅ Mistral Agent ID: `ag_01a0e4287799724cba04f2bfcb235ce8`
 - ✅ Sarvam API Key: `sk_axazbxdv_fBgxtCwIImUfdBgpwvRdKCcR`
 - ✅ Supabase: Configured

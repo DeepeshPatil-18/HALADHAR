@@ -13,7 +13,7 @@ services:
       - key: SARVAM_API_KEY
         value: sk_axazbxdv_fBgxtCwIImUfdBgpwvRdKCcR
       - key: MISTRAL_API_KEY
-        value: mstrl_S9eNTQab6Q4g0PHrCSd8Fshhgo4kGAD3_0Y7ACj
+        value: mstrl_QvYWYGXykENawCxbSE1WSrtQYlPE72WY_3BBlfa
       - key: MISTRAL_AGENT_ID
         value: ag_01a0e4287799724cba04f2bfcb235ce8
       - key: MAPPLS_ACCESS_TOKEN
