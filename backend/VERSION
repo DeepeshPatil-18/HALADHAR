@@ -1,0 +1,5 @@
+2.0.1-rate-limit-fix
+Build: 2026-09-28T19:30:00Z
+Fixes:
+- Mistral rate limit fallback
+- WeatherSource.get_weather error
