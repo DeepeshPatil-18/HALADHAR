@@ -122,23 +122,38 @@ async def _get_weather_context(lat: float, lon: float, language: str = "mr") -> 
     t = translations.get(language, translations["mr"])
     
     try:
-        weather = await weather_source.get_weather(lat, lon)
+        # Use the weather service instead of weather_source
+        from services.weather_service import WeatherService
+        weather = await WeatherService.get_farmer_weather(
+            latitude=lat,
+            longitude=lon,
+            location_name="Unknown",
+            state=None,
+            district=None
+        )
         
         # Analyze spray suitability
-        temp = weather.get("current", {}).get("temp_c", 0)
-        wind_speed = weather.get("current", {}).get("wind_kph", 0)
-        humidity = weather.get("current", {}).get("humidity", 0)
+        current = weather.get("current", {})
+        temp = current.get("temperature", 25)
+        wind_speed = current.get("wind_speed", 0)
+        humidity = current.get("humidity", 50)
         
         spray_suitable = (15 <= temp <= 30) and (wind_speed < 10) and (humidity >= 50)
         
         # Rain prediction
-        forecast = weather.get("forecast", {}).get("forecastday", [])
+        hourly = weather.get("hourly_forecast", [])
+        daily = weather.get("daily_forecast", [])
         will_rain_today = False
         will_rain_tomorrow = False
-        if forecast:
-            will_rain_today = forecast[0].get("day", {}).get("daily_chance_of_rain", 0) > 50
-            if len(forecast) > 1:
-                will_rain_tomorrow = forecast[1].get("day", {}).get("daily_chance_of_rain", 0) > 50
+        
+        # Check if rain expected today
+        if hourly:
+            rain_today = any(h.get("precipitation_mm", 0) > 0.5 for h in hourly[:12])
+            will_rain_today = rain_today
+        
+        # Check if rain expected tomorrow
+        if daily and len(daily) > 1:
+            will_rain_tomorrow = daily[1].get("precipitation_mm", 0) > 2
         
         # Generate simple, actionable message
         messages = []

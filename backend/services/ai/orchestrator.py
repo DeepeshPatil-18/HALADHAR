@@ -234,14 +234,30 @@ class AIOrchestrator:
                 logger.info(f"[ORCHESTRATOR] Providing {len(tools)} tools to {provider.get_provider_name()}")
             
             # Generate response (may include tool calls)
-            response_text = await provider.generate_response(
-                message=message,
-                conversation_history=conversation_history,
-                language=language,
-                context=context,
-                tools=tools,
-                tool_executor=tool_executor
-            )
+            try:
+                response_text = await provider.generate_response(
+                    message=message,
+                    conversation_history=conversation_history,
+                    language=language,
+                    context=context,
+                    tools=tools,
+                    tool_executor=tool_executor
+                )
+            except Exception as provider_error:
+                error_msg = str(provider_error)
+                logger.warning(f"[ORCHESTRATOR] Provider error: {error_msg}")
+                
+                # If rate limit or API error, use placeholder response
+                if "rate limit" in error_msg.lower() or "429" in error_msg:
+                    logger.info("[ORCHESTRATOR] Using placeholder response due to rate limit")
+                    # Import placeholder response method
+                    if hasattr(provider, '_placeholder_response'):
+                        response_text = await provider._placeholder_response(message, language, context)
+                    else:
+                        # Generic fallback
+                        response_text = "मुझे खेद है, मैं अभी अस्थायी रूप से अनुपलब्ध हूं। कृपया कुछ समय बाद पुनः प्रयास करें। तत्काल सहायता के लिए कृषि हेल्पलाइन 1800-180-1551 पर संपर्क करें।"
+                else:
+                    raise provider_error
             
             # LOG: Orchestrator received response
             logger.info(f"[ORCHESTRATOR] Received final response from {provider.get_provider_name()}")
