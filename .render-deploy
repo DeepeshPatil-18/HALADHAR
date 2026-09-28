@@ -1,0 +1,4 @@
+Deployment trigger: 2026-09-28 19:25
+Latest fixes:
+- Mistral rate limit fallback
+- WeatherSource.get_weather fix
