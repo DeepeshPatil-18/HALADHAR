@@ -247,16 +247,42 @@ class AIOrchestrator:
                 error_msg = str(provider_error)
                 logger.warning(f"[ORCHESTRATOR] Provider error: {error_msg}")
                 
-                # If rate limit or API error, use placeholder response
+                # Handle rate limit errors with fallback response
                 if "rate limit" in error_msg.lower() or "429" in error_msg:
-                    logger.info("[ORCHESTRATOR] Using placeholder response due to rate limit")
-                    # Import placeholder response method
+                    logger.info("[ORCHESTRATOR] Mistral rate limit detected - using fallback response")
+                    
+                    # Use provider's intelligent fallback if available
                     if hasattr(provider, '_placeholder_response'):
+                        logger.info("[ORCHESTRATOR] Calling provider._placeholder_response()")
                         response_text = await provider._placeholder_response(message, language, context)
+                        logger.info(f"[ORCHESTRATOR] Fallback response generated: {len(response_text)} chars")
                     else:
-                        # Generic fallback
-                        response_text = "मुझे खेद है, मैं अभी अस्थायी रूप से अनुपलब्ध हूं। कृपया कुछ समय बाद पुनः प्रयास करें। तत्काल सहायता के लिए कृषि हेल्पलाइन 1800-180-1551 पर संपर्क करें।"
+                        # Generic fallback based on language
+                        logger.info("[ORCHESTRATOR] Using generic fallback (no provider method)")
+                        if language == "en":
+                            response_text = (
+                                "I'm temporarily unavailable due to high demand. "
+                                "Please try again in a few moments. "
+                                "For urgent assistance, call Krishi Helpline: 1800-180-1551"
+                            )
+                        elif language == "mr":
+                            response_text = (
+                                "मी सध्या तात्पुरते अनुपलब्ध आहे. "
+                                "कृपया काही क्षणांनी पुन्हा प्रयत्न करा. "
+                                "तातडीच्या मदतीसाठी कृषि हेल्पलाइन: 1800-180-1551 वर संपर्क करा."
+                            )
+                        else:  # Default Hindi
+                            response_text = (
+                                "मुझे खेद है, मैं अभी अस्थायी रूप से अनुपलब्ध हूं। "
+                                "कृपया कुछ समय बाद पुनः प्रयास करें। "
+                                "तत्काल सहायता के लिए कृषि हेल्पलाइन 1800-180-1551 पर संपर्क करें।"
+                            )
+                    
+                    logger.info("[ORCHESTRATOR] Rate limit fallback successful - continuing with response")
+                    # Continue to normal response handling (don't raise exception)
                 else:
+                    # For non-rate-limit errors, re-raise
+                    logger.error(f"[ORCHESTRATOR] Non-rate-limit error, re-raising: {error_msg}")
                     raise provider_error
             
             # LOG: Orchestrator received response

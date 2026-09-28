@@ -62,6 +62,88 @@ app = FastAPI(
     version="0.1.0",
 )
 
+# ============================================================================
+# Startup Diagnostics (for debugging Render deployment issues)
+# ============================================================================
+@app.on_event("startup")
+async def startup_diagnostics():
+    """Log startup information for debugging deployment issues"""
+    import sys
+    from pathlib import Path
+    
+    # Clear Python bytecode cache on startup (fixes Render deployment issues)
+    import py_compile
+    import shutil
+    
+    logger.info("=" * 80)
+    logger.info("KrishiMitra Backend Starting Up")
+    logger.info("=" * 80)
+    
+    # Clear __pycache__ directories to force recompilation
+    backend_root = Path(__file__).parent
+    cache_dirs_cleared = 0
+    for cache_dir in backend_root.rglob("__pycache__"):
+        try:
+            shutil.rmtree(cache_dir)
+            cache_dirs_cleared += 1
+        except Exception as e:
+            logger.warning(f"Could not clear cache dir {cache_dir}: {e}")
+    
+    if cache_dirs_cleared > 0:
+        logger.info(f"✓ Cleared {cache_dirs_cleared} __pycache__ directories")
+    
+    # Show Python and module info
+    logger.info(f"Python version: {sys.version}")
+    logger.info(f"Backend root: {Path(__file__).parent}")
+    logger.info(f"Working directory: {Path.cwd()}")
+    
+    # Show git commit if available
+    try:
+        import subprocess
+        commit_hash = subprocess.check_output(
+            ['git', 'rev-parse', '--short', 'HEAD'],
+            cwd=Path(__file__).parent,
+            stderr=subprocess.DEVNULL,
+            text=True
+        ).strip()
+        commit_msg = subprocess.check_output(
+            ['git', 'log', '-1', '--pretty=%B'],
+            cwd=Path(__file__).parent,
+            stderr=subprocess.DEVNULL,
+            text=True
+        ).strip()
+        logger.info(f"Git commit: {commit_hash} - {commit_msg}")
+    except Exception:
+        logger.info("Git commit: Not available (not a git repo or git not installed)")
+    
+    # Show environment info (without exposing secrets)
+    logger.info(f"MISTRAL_API_KEY: {'✓ Set' if os.getenv('MISTRAL_API_KEY') else '✗ Missing'}")
+    logger.info(f"MISTRAL_AGENT_ID: {os.getenv('MISTRAL_AGENT_ID', '✗ Missing')}")
+    logger.info(f"SARVAM_API_KEY: {'✓ Set' if os.getenv('SARVAM_API_KEY') else '✗ Missing'}")
+    logger.info(f"SARVAM_STT_MODEL: {os.getenv('SARVAM_STT_MODEL', 'saaras:v3 (default)')}")
+    logger.info(f"SARVAM_TTS_MODEL: {os.getenv('SARVAM_TTS_MODEL', 'bulbul:v3 (default)')}")
+    logger.info(f"SARVAM_TTS_SPEAKER: {os.getenv('SARVAM_TTS_SPEAKER', 'shubh (default)')}")
+    logger.info(f"SUPABASE_URL: {'✓ Set' if os.getenv('SUPABASE_URL') else '✗ Missing'}")
+    
+    # Verify critical modules are loaded correctly
+    try:
+        from services.weather_service import WeatherService
+        logger.info(f"✓ WeatherService loaded: {WeatherService.__module__}")
+    except Exception as e:
+        logger.error(f"✗ WeatherService load failed: {e}")
+    
+    try:
+        from services.ai.orchestrator import ai_orchestrator
+        logger.info(f"✓ AI Orchestrator loaded: {ai_orchestrator.__class__.__module__}")
+        logger.info(f"  - Mistral available: {ai_orchestrator.mistral.is_available()}")
+        logger.info(f"  - Default provider: {ai_orchestrator.default_provider}")
+    except Exception as e:
+        logger.error(f"✗ AI Orchestrator load failed: {e}")
+    
+    logger.info("=" * 80)
+    logger.info("Startup diagnostics complete - Application ready")
+    logger.info("=" * 80)
+
 # Allow all origins during development; tighten in production.
 import os
 _allowed_origins = os.getenv("ALLOWED_ORIGINS", "*")

@@ -210,27 +210,54 @@ async def _get_weather_context(lat: float, lon: float, language: str = "mr") -> 
         }
 
 
-async def _get_water_context(lat: float, lon: float, weather_data: Dict) -> Dict[str, str]:
+async def _get_water_context(lat: float, lon: float, weather_data: Dict, language: str = "mr") -> Dict[str, str]:
     """Generate irrigation recommendation"""
     will_rain = weather_data.get("will_rain_today", False)
     temp = weather_data.get("temp", 25)
     
+    # Translation based on language
+    translations = {
+        "mr": {
+            "label": "पाणी व्यवस्थापन",
+            "rain_today": "आज पाऊस असेल, पाणी नको",
+            "hot": "उष्णता जास्त, संध्याकाळी पाणी द्या",
+            "warm": "मध्यम उष्णता, पहाटे पाणी द्या",
+            "no_need": "पाणी देण्याची गरज नाही"
+        },
+        "hi": {
+            "label": "पानी प्रबंधन",
+            "rain_today": "आज बारिश होगी, पानी न दें",
+            "hot": "गर्मी अधिक है, शाम को पानी दें",
+            "warm": "मध्यम गर्मी, सुबह पानी दें",
+            "no_need": "पानी देने की जरूरत नहीं"
+        },
+        "en": {
+            "label": "Water Management",
+            "rain_today": "Rain expected today, don't water",
+            "hot": "High temperature, water in evening",
+            "warm": "Moderate temperature, water in morning",
+            "no_need": "No watering needed"
+        }
+    }
+    
+    t = translations.get(language, translations["mr"])
+    
     if will_rain:
-        recommendation = "आज पाऊस असेल, पाणी नको"
+        recommendation = t["rain_today"]
     elif temp > 35:
-        recommendation = "उष्णता जास्त, संध्याकाळी पाणी द्या"
+        recommendation = t["hot"]
     elif temp > 30:
-        recommendation = "मध्यम उष्णता, पहाटे पाणी द्या"
+        recommendation = t["warm"]
     else:
-        recommendation = "पाणी देण्याची गरज नाही"
+        recommendation = t["no_need"]
     
     return {
-        "label": "पाणी व्यवस्थापन",
+        "label": t["label"],
         "value": recommendation
     }
 
 
-async def _get_market_context(lat: float, lon: float, crop: Optional[str]) -> Optional[Dict[str, str]]:
+async def _get_market_context(lat: float, lon: float, crop: Optional[str], language: str = "mr") -> Optional[Dict[str, str]]:
     """Fetch today's mandi prices - return simple message"""
     try:
         # Get nearby markets
@@ -281,7 +308,7 @@ async def _get_market_context(lat: float, lon: float, crop: Optional[str]) -> Op
         return None
 
 
-async def _get_crop_context(crop: Optional[str], weather_data: Dict) -> Optional[Dict[str, str]]:
+async def _get_crop_context(crop: Optional[str], weather_data: Dict, language: str = "mr") -> Optional[Dict[str, str]]:
     """Generate crop-specific recommendations"""
     if not crop:
         return None
@@ -317,7 +344,7 @@ async def _get_crop_context(crop: Optional[str], weather_data: Dict) -> Optional
     }
 
 
-def _generate_actions(weather_data: Dict, water_context: Dict, crop_context: Optional[Dict]) -> List[str]:
+def _generate_actions(weather_data: Dict, water_context: Dict, crop_context: Optional[Dict], language: str = "mr") -> List[str]:
     """Generate prioritized action items for today"""
     actions = []
     
@@ -341,7 +368,7 @@ def _generate_actions(weather_data: Dict, water_context: Dict, crop_context: Opt
     return actions[:3]  # Top 3 actions
 
 
-def _generate_alert(weather_data: Dict) -> Optional[Dict[str, str]]:
+def _generate_alert(weather_data: Dict, language: str = "mr") -> Optional[Dict[str, str]]:
     """Generate important alerts"""
     temp = weather_data.get("temp", 25)
     wind_speed = weather_data.get("wind_speed", 0)
