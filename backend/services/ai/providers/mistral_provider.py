@@ -528,8 +528,8 @@ Use IMD weather app or contact local weather center."""
 - मौसम सलाह
 - सरकारी योजनाओं की जानकारी
 
-❌ **कृपया ध्यान दें:**
-वर्तमान में AI सेवा अस्थायी रूप से सीमित है।
+💡 **सुझाव:**
+कृपया अपना सवाल विस्तार से पूछें।
 
 📞 **तत्काल सहायता:**
 कृषि हेल्पलाइन: 1800-180-1551"""
@@ -544,8 +544,8 @@ Use IMD weather app or contact local weather center."""
 - Weather advice  
 - Government scheme details
 
-❌ **Please note:**
-AI service is temporarily limited.
+💡 **Tip:**
+Please ask your question with more details.
 
 📞 **Immediate Help:**
 Agriculture Helpline: 1800-180-1551"""
